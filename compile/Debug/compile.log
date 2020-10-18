@@ -1,0 +1,10 @@
+﻿  getSym.cpp
+d:\compile\词法分析\demo\词法分析\词法分析\getsym.cpp(211,1): error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+d:\windows kits\10\include\10.0.18362.0\ucrt\string.h(133): message : 参见“strcpy”的声明
+d:\compile\词法分析\demo\词法分析\词法分析\getsym.cpp(227,1): error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+d:\windows kits\10\include\10.0.18362.0\ucrt\string.h(133): message : 参见“strcpy”的声明
+  Main.cpp
+d:\compile\词法分析\demo\词法分析\词法分析\main.cpp(8,1): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+d:\windows kits\10\include\10.0.18362.0\ucrt\stdio.h(208): message : 参见“fopen”的声明
+  parser.cpp
+  正在生成代码...
