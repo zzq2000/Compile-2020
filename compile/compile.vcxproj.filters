@@ -15,39 +15,39 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\词法分析\demo\词法分析\词法分析\output.txt">
-      <Filter>资源文件</Filter>
-    </Text>
-    <Text Include="..\..\词法分析\demo\词法分析\词法分析\testfile.txt">
-      <Filter>资源文件</Filter>
-    </Text>
-    <Text Include="..\..\词法分析\demo\词法分析\词法分析\文法.txt">
-      <Filter>资源文件</Filter>
-    </Text>
+    <ClInclude Include="src\parser.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\symTables.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\error.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\词法分析\demo\词法分析\词法分析\Main.cpp">
+    <ClCompile Include="src\parser.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\词法分析\demo\词法分析\词法分析\parser.cpp">
+    <ClCompile Include="src\error.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\词法分析\demo\词法分析\词法分析\error.cpp">
+    <ClCompile Include="src\getSym.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\词法分析\demo\词法分析\词法分析\getSym.cpp">
+    <ClCompile Include="src\Main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\词法分析\demo\词法分析\词法分析\symTables.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\词法分析\demo\词法分析\词法分析\error.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\词法分析\demo\词法分析\词法分析\parser.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
+    <Text Include="src\文法.txt">
+      <Filter>资源文件</Filter>
+    </Text>
+    <Text Include="src\output.txt">
+      <Filter>资源文件</Filter>
+    </Text>
+    <Text Include="src\testfile.txt">
+      <Filter>资源文件</Filter>
+    </Text>
   </ItemGroup>
 </Project>

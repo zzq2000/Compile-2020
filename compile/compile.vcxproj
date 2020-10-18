@@ -141,20 +141,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="..\..\词法分析\demo\词法分析\词法分析\output.txt" />
-    <Text Include="..\..\词法分析\demo\词法分析\词法分析\testfile.txt" />
-    <Text Include="..\..\词法分析\demo\词法分析\词法分析\文法.txt" />
+    <ClInclude Include="src\error.h" />
+    <ClInclude Include="src\parser.h" />
+    <ClInclude Include="src\symTables.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\词法分析\demo\词法分析\词法分析\error.cpp" />
-    <ClCompile Include="..\..\词法分析\demo\词法分析\词法分析\getSym.cpp" />
-    <ClCompile Include="..\..\词法分析\demo\词法分析\词法分析\Main.cpp" />
-    <ClCompile Include="..\..\词法分析\demo\词法分析\词法分析\parser.cpp" />
+    <ClCompile Include="src\error.cpp" />
+    <ClCompile Include="src\getSym.cpp" />
+    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\parser.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\词法分析\demo\词法分析\词法分析\error.h" />
-    <ClInclude Include="..\..\词法分析\demo\词法分析\词法分析\parser.h" />
-    <ClInclude Include="..\..\词法分析\demo\词法分析\词法分析\symTables.h" />
+    <Text Include="src\output.txt" />
+    <Text Include="src\testfile.txt" />
+    <Text Include="src\文法.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,1 +1,9 @@
-﻿  compile.vcxproj -> D:\compile\compile-2020\compile\x64\Debug\compile.exe
+﻿..\..\璇嶆硶鍒嗘瀽\demo\璇嶆硶鍒嗘瀽\璇嶆硶鍒嗘瀽\Main.cpp(8,16): warning : 'fopen' is deprecated: This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
+D:\Windows Kits\10\Include\10.0.18362.0\ucrt\stdio.h(207,20): message : 'fopen' has been explicitly marked deprecated here
+D:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vcruntime.h(255,55): message : expanded from macro '_CRT_INSECURE_DEPRECATE'
+D:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vcruntime.h(245,47): message : expanded from macro '_CRT_DEPRECATE_TEXT'
+..\..\璇嶆硶鍒嗘瀽\demo\璇嶆硶鍒嗘瀽\璇嶆硶鍒嗘瀽\Main.cpp(8,66): warning : 'fopen' is deprecated: This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
+D:\Windows Kits\10\Include\10.0.18362.0\ucrt\stdio.h(207,20): message : 'fopen' has been explicitly marked deprecated here
+D:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vcruntime.h(255,55): message : expanded from macro '_CRT_INSECURE_DEPRECATE'
+D:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vcruntime.h(245,47): message : expanded from macro '_CRT_DEPRECATE_TEXT'
+  compile.vcxproj -> D:\compile\compile-2020\compile\x64\Debug\compile.exe
