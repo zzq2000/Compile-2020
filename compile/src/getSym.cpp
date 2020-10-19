@@ -212,7 +212,7 @@ SymTable getsym_(FILE* inFile) {
 			return symTable;
 		}
 	}
-	symTable.symbol = null;
+	symTable.symbol = nullsym;
 	return symTable;
 }
 

@@ -42,7 +42,7 @@ typedef enum
 	RBRACK,
 	LBRACE,
 	RBRACE,
-	null
+	nullsym
 } Symbol;
 
 typedef struct {

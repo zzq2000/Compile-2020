@@ -11,6 +11,7 @@ int main() {
 	//analysis(inFile);
 	//print2file(outFile);
 	parsering(inFile);
+
 	gt2file(outFile, grammerTree);
 	fclose(inFile);
 	fclose(outFile);
