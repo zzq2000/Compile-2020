@@ -152,9 +152,9 @@
     <ClCompile Include="src\parser.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="src\output.txt" />
-    <Text Include="src\testfile.txt" />
+    <Text Include="output.txt" />
     <Text Include="src\文法.txt" />
+    <Text Include="testfile.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

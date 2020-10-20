@@ -5,7 +5,9 @@
 void print2file(FILE*);
 int main() {
 	FILE* inFile, * outFile;
-	if ((inFile = fopen("testfile.txt", "r")) == NULL || (outFile = fopen("output.txt", "w")) == NULL) {
+	inFile = fopen("testfile.txt", "r");
+	outFile = fopen("output.txt", "w");
+	if (inFile == NULL || outFile == NULL) {
 		exit(1);
 	}
 	//analysis(inFile);

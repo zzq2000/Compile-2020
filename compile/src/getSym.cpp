@@ -16,7 +16,7 @@ char keywords[][10] = { "const", "int", "char", "void", "main", "if", "else", "s
 	"for", "scanf", "printf", "return"
 };
 
-int line = 0;
+int line = 1;
 int column = 0;
 char token[MAXL];
 int tokenlen = 0;

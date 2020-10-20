@@ -43,10 +43,10 @@
     <Text Include="src\文法.txt">
       <Filter>资源文件</Filter>
     </Text>
-    <Text Include="src\output.txt">
+    <Text Include="output.txt">
       <Filter>资源文件</Filter>
     </Text>
-    <Text Include="src\testfile.txt">
+    <Text Include="testfile.txt">
       <Filter>资源文件</Filter>
     </Text>
   </ItemGroup>
