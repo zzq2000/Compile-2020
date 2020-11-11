@@ -1,21 +1,48 @@
 ﻿#include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
+#include<ctype.h>
 #include "parser.h"
 #include "symTables.h"
 #include "error.h"
+#include "idTable.h"
 FILE* inFile;
 gtNodePointer grammerTree = NULL;
 SymTable symTable;
 SymTable symTableArray[20];
 int symCount = 0;
 int ungetsym = 0;
+int level = 0;
+Type returnType = Void;
+int isReturned = 0;
 void getNextSymTable() {
 	if (ungetsym) {
 		ungetsym = 0;
 	}
 	else {
 		symTable = getsym_(inFile);
+	}
+}
+
+void symCheck(SymTable symTable) {
+	if (symTable.symbol == CHARCON) {
+		if (symTable.value == NULL || (symTable.value != NULL &&
+			symTable.value[0] != '+' && symTable.value[0] != '-' && symTable.value[0] != '*' &&
+			symTable.value[0] != '/' && symTable.value[0] != '_' && !isalnum(symTable.value[0])))
+			errorPro(line, 'a');
+	}
+	else if (symTable.symbol == STRCON) {
+		if (symTable.value == NULL) {
+			errorPro(line, 'a');
+		}
+		else {
+			for (int i = 0; i < strlen(symTable.value); i++) {
+				if (symTable.value[i] < 32 || symTable.value[i] == 34 || symTable.value[i] > 126) {
+					errorPro(line, 'a');
+					break;
+				}
+			}
+		}
 	}
 }
 
@@ -113,11 +140,6 @@ void gt2file(FILE* outFile, gtNodePointer gtNodep) {
 	}
 }
 
-void idenfr(gtNodePointer* gtNodepp) {
-	gtNodePointer gtNodepSon = createTreeNode(symTable);
-	insert(*gtNodepp, gtNodepSon);
-}
-
 void program(gtNodePointer* gtNodepp) {
 	if (symTable.symbol == CONSTTK) {
 		gtNodePointer gtNodepSon = createTreeNode(CONSTSTATE);
@@ -202,16 +224,27 @@ void conststate(gtNodePointer* gtNodepp) {
 		insert(*gtNodepp, gtNodepSon);
 		getNextSymTable();
 		if (symTable.symbol != SEMICN) {
+			if (lineend == 1) {
+				errorPro(line-1, 'k');
+			}
+			else {
+				errorPro(line, 'k');
+			}
 			err(line, symTable.value);
+			ungetsym = 1;
 		}
-		gtNodepSon = createTreeNode(symTable);
-		insert(*gtNodepp, gtNodepSon);
+		else {
+			gtNodepSon = createTreeNode(symTable);
+			insert(*gtNodepp, gtNodepSon);
+		}
 		getNextSymTable();
 	} while (symTable.symbol == CONSTTK);
 	ungetsym = 1;
 }
 
 void intconstdef(gtNodePointer* gtNodepp) {
+	Category category = con;
+	Type type = Integer;
 	do {
 		gtNodePointer gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
@@ -219,6 +252,7 @@ void intconstdef(gtNodePointer* gtNodepp) {
 		if (symTable.symbol != IDENFR) {
 			err(line, symTable.value);
 		}
+		insertId(symTable.value, category, type, 0, level);
 		gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
 		getNextSymTable();
@@ -242,6 +276,8 @@ void intconstdef(gtNodePointer* gtNodepp) {
 }
 
 void charconstdef(gtNodePointer* gtNodepp) {
+	Category category = con;
+	Type type = Char;
 	do {
 		gtNodePointer gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
@@ -249,6 +285,7 @@ void charconstdef(gtNodePointer* gtNodepp) {
 		if (symTable.symbol != IDENFR) {
 			err(line, symTable.value);
 		}
+		insertId(symTable.value, category, type, 0, level);
 		gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
 		getNextSymTable();
@@ -261,6 +298,7 @@ void charconstdef(gtNodePointer* gtNodepp) {
 		if (symTable.symbol != CHARCON) {
 			err(line, symTable.value);
 		}
+		symCheck(symTable);
 		gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
 		getNextSymTable();
@@ -298,7 +336,14 @@ void varstate(gtNodePointer* gtNodepp) {
 		insert(*gtNodepp, gtNodepSon);
 	}
 	else {
+		if (lineend == 1) {
+			errorPro(line - 1, 'k');
+		}
+		else {
+			errorPro(line, 'k');
+		}
 		err(line, symTable.value);
+		ungetsym = 1;
 	}
 	getNextSymTable();
 	while (symTable.symbol == INTTK || symTable.symbol == CHARTK) {
@@ -316,7 +361,14 @@ void varstate(gtNodePointer* gtNodepp) {
 					insert(*gtNodepp, gtNodepSon);
 				}
 				else {
+					if (lineend == 1) {
+						errorPro(line - 1, 'k');
+					}
+					else {
+						errorPro(line, 'k');
+					}
 					err(line, symTable.value);
+					ungetsym = 1;
 				}
 				getNextSymTable();
 			}
@@ -337,16 +389,20 @@ void arrayLength() {
 	getNextSymTable();
 	if (symTable.symbol == INTCON) {
 		symTableArray[symCount++] = symTable;
-		getNextSymTable();
-		if (symTable.symbol == RBRACK) {
-			symTableArray[symCount++] = symTable;
-		}
-		else {
-			err(line, symTable.value);
-		}
 	}
 	else {
+		errorPro(line, 'i');
 		err(line, symTable.value);
+	}
+	getNextSymTable();
+	if (symTable.symbol == RBRACK) {
+		symTableArray[symCount++] = symTable;
+	}
+	else {
+		symTableArray[symCount++] = symTable;//TODO
+		errorPro(line, 'm');
+		err(line, symTable.value);
+		ungetsym = 1;
 	}
 }
 
@@ -382,15 +438,20 @@ void vardef(gtNodePointer* gtNodepp) {
 
 void vardefnoinit(gtNodePointer* gtNodepp) {
 	gtNodePointer gtNodepSon;
+	Category category = symCount == 2 ? var : array;
+	Type type = symTableArray[0].symbol == INTTK ? Integer : Char;
+	int dimention = symCount == 5 ? 1 : 
+					symCount == 8 ? 2 : 0;
+	insertId(symTableArray[1].value, category, type, dimention, level);
 	for (int i = 0; i < symCount; i++) {
-		if (symTableArray[i].symbol != INTCON) {
-			gtNodepSon = createTreeNode(symTableArray[i]);
-			insert(*gtNodepp, gtNodepSon);
-		}
-		else {
+		if (symTableArray[i].symbol == INTCON) {
 			gtNodepSon = createTreeNode(UNSIGNEDINTEGER);
 			gtNodePointer gtNodepSon2 = createTreeNode(symTableArray[i]);
 			insert(gtNodepSon, gtNodepSon2);
+			insert(*gtNodepp, gtNodepSon);
+		}
+		else {
+			gtNodepSon = createTreeNode(symTableArray[i]);
 			insert(*gtNodepp, gtNodepSon);
 		}
 	}
@@ -400,13 +461,16 @@ void vardefnoinit(gtNodePointer* gtNodepp) {
 		insert(*gtNodepp, gtNodepSon);
 		getNextSymTable();
 		if (symTable.symbol == IDENFR) {
-			gtNodepSon = createTreeNode(symTable);
-			insert(*gtNodepp, gtNodepSon);
+			symTableArray[symCount++] = symTable;
 			getNextSymTable();
 			while (symTable.symbol == LBRACK) {
 				arrayLength();
 				getNextSymTable();
 			}
+			Category category = symCount == 1 ? var : array;
+			int dimention = symCount == 4 ? 1 :
+				symCount == 7 ? 2 : 0;
+			insertId(symTableArray[0].value, category, type, dimention, level);
 			for (int i = 0; i < symCount; i++) {
 				if (symTableArray[i].symbol != INTCON) {
 					gtNodepSon = createTreeNode(symTableArray[i]);
@@ -432,20 +496,27 @@ void vardefnoinit(gtNodePointer* gtNodepp) {
 	}
 }
 
-void arrayInit(gtNodePointer* gtNodepp) {
+void arrayInit(gtNodePointer* gtNodepp, int dim, int length[], int now, Type type) {
+	if (dim < now) {
+		errorPro(line, 'n');
+	}
+	int num = 0;
 	gtNodePointer gtNodepSon = createTreeNode(symTable);
 	insert(*gtNodepp, gtNodepSon);
 	getNextSymTable();
 	if (symTable.symbol == LBRACE) {
-		arrayInit(gtNodepp);
+		arrayInit(gtNodepp, dim, length, now+1, type);
 		getNextSymTable();
+		num++;
 		while (symTable.symbol == COMMA) {
 			gtNodePointer gtNodepSon = createTreeNode(symTable);
 			insert(*gtNodepp, gtNodepSon);
 			getNextSymTable();
-			arrayInit(gtNodepp);
+			arrayInit(gtNodepp, dim, length, now + 1, type);
+			num++;
 			getNextSymTable();
 		}
+		if (num != length[now-1]) errorPro(line, 'n');
 		if (symTable.symbol != RBRACE) err(line, symTable.value);
 		gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
@@ -454,6 +525,10 @@ void arrayInit(gtNodePointer* gtNodepp) {
 		gtNodepSon = createTreeNode(CONST);
 		const_(&gtNodepSon);
 		insert(*gtNodepp, gtNodepSon);
+		if ((symTable.symbol != CHARCON && type == Char) || (symTable.symbol == CHARCON && type == Integer)) {
+			errorPro(line, 'o');
+		}
+		num++;
 		getNextSymTable();
 		while (symTable.symbol == COMMA) {
 			gtNodePointer gtNodepSon = createTreeNode(symTable);
@@ -463,10 +538,15 @@ void arrayInit(gtNodePointer* gtNodepp) {
 				gtNodepSon = createTreeNode(CONST);
 				const_(&gtNodepSon);
 				insert(*gtNodepp, gtNodepSon);
+				if ((symTable.symbol != CHARCON && type == Char) || (symTable.symbol == CHARCON && type == Integer)) {
+					errorPro(line, 'o');
+				}
 			}
 			else err(line, symTable.value);
+			num++;
 			getNextSymTable();
 		}
+		if (num != length[now-1]) errorPro(line, 'n');
 		if (symTable.symbol != RBRACE) err(line, symTable.value);
 		gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
@@ -477,6 +557,10 @@ void arrayInit(gtNodePointer* gtNodepp) {
 void vardefinit(gtNodePointer* gtNodepp) {
 	gtNodePointer gtNodepSon;
 	if (symCount == 2) {
+		Category category = var;
+		Type type = symTableArray[0].symbol == INTTK ? Integer : Char;
+		int dimention = 0;
+		insertId(symTableArray[1].value, category, type, dimention, level);
 		for (int i = 0; i < symCount; i++) {
 			gtNodepSon = createTreeNode(symTableArray[i]);
 			insert(*gtNodepp, gtNodepSon);
@@ -488,6 +572,9 @@ void vardefinit(gtNodePointer* gtNodepp) {
 			gtNodepSon = createTreeNode(CONST);
 			const_(&gtNodepSon);
 			insert(*gtNodepp, gtNodepSon);
+			if ((symTable.symbol != CHARCON && type == Char) || (symTable.symbol == CHARCON && type == Integer)) {
+				errorPro(line, 'o');
+			}
 		}
 		else {
 			err(line, symTable.value);
@@ -496,6 +583,11 @@ void vardefinit(gtNodePointer* gtNodepp) {
 		if (symTable.symbol != SEMICN) err(line, symTable.value);
 	}
 	else if (symCount == 5 || symCount == 8) {
+		Category category = array;
+		Type type = symTableArray[0].symbol == INTTK ? Integer : Char;
+		int dimention = symCount == 5 ? 1 : 2;
+		insertId(symTableArray[1].value, category, type, dimention, level);
+		int length[10], dim = 0;
 		for (int i = 0; i < symCount; i++) {
 			if (symTableArray[i].symbol != INTCON) {
 				gtNodepSon = createTreeNode(symTableArray[i]);
@@ -506,13 +598,14 @@ void vardefinit(gtNodePointer* gtNodepp) {
 				gtNodePointer gtNodepSon2 = createTreeNode(symTableArray[i]);
 				insert(gtNodepSon, gtNodepSon2);
 				insert(*gtNodepp, gtNodepSon);
+				length[dim++] = symTableArray[i].value[0] - '0';
 			}
 		}
 		gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
 		getNextSymTable();
 		if (symTable.symbol == LBRACE) {
-			arrayInit(gtNodepp);
+			arrayInit(gtNodepp, dimention, length, 1, type);
 		}
 		else {
 			err(line, symTable.value);
@@ -525,6 +618,7 @@ void vardefinit(gtNodePointer* gtNodepp) {
 
 void const_(gtNodePointer* gtNodepp) {
 	if (symTable.symbol == CHARCON) {
+		symCheck(symTable);
 		gtNodePointer gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
 	}
@@ -542,14 +636,23 @@ void functiondef(gtNodePointer* gtNodepp) {
 	gtNodepSon = createTreeNode(symTable);
 	insert(*gtNodepp, gtNodepSon);
 	getNextSymTable();
+	isReturned = 0;
+	level++;//进入下一层
 	if (symTable.symbol == INTTK || symTable.symbol == CHARTK || symTable.symbol == RPARENT) {
 		gtNodepSon = createTreeNode(PARALIST);
-		paralist(&gtNodepSon);
+		paralist(&gtNodepSon, idNum-1);
 		insert(*gtNodepp, gtNodepSon);
 	}
-	if (symTable.symbol != RPARENT) err(line, symTable.value);
-	gtNodepSon = createTreeNode(symTable);
-	insert(*gtNodepp, gtNodepSon);
+	if (symTable.symbol != RPARENT) {
+		errorPro(line, 'l');
+		err(line, symTable.value);
+		ungetsym = 1;
+	}
+	else {
+		gtNodepSon = createTreeNode(symTable);
+		insert(*gtNodepp, gtNodepSon);
+	}
+
 	getNextSymTable();
 	if (symTable.symbol != LBRACE) err(line, symTable.value);
 	gtNodepSon = createTreeNode(symTable);
@@ -562,10 +665,19 @@ void functiondef(gtNodePointer* gtNodepp) {
 	if (symTable.symbol != RBRACE) err(line, symTable.value);
 	gtNodepSon = createTreeNode(symTable);
 	insert(*gtNodepp, gtNodepSon);
+	clearLevel(level);
+	level--;//返回上一层
+	if (isReturned == 0) {
+		errorPro(line, 'h');
+	}
 }
 
 void statehead(gtNodePointer* gtNodepp) {
 	if (symCount == 2) {
+		Category category = func;
+		Type type = symTableArray[0].symbol == INTTK ? Integer : Char;
+		insertId(symTableArray[1].value, category, type, 0, level);
+		returnType = type;
 		gtNodePointer gtNodepSon = createTreeNode(symTableArray[0]);
 		insert(*gtNodepp, gtNodepSon);
 		gtNodepSon = createTreeNode(symTableArray[1]);
@@ -577,8 +689,12 @@ void statehead(gtNodePointer* gtNodepp) {
 	else {
 		gtNodePointer gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
+		Type type = symTable.symbol == INTTK ? Integer : Char;
+		Category category = func;
 		getNextSymTable();
 		if (symTable.symbol != IDENFR) err(line, symTable.value);
+		insertId(symTable.value, category, type, 0, level);
+		returnType = type;
 		gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
 		strcpy(functions[functionNum].name, symTable.value);
@@ -588,12 +704,16 @@ void statehead(gtNodePointer* gtNodepp) {
 	}
 }
 
-void paralist(gtNodePointer* gtNodepp) {
+void paralist(gtNodePointer* gtNodepp, int loc) {
 	if (symTable.symbol == RPARENT) return;
+	Category category = var;
+	Type type = symTable.symbol == INTTK ? Integer : Char;
 	gtNodePointer gtNodepSon = createTreeNode(symTable);
 	insert(*gtNodepp, gtNodepSon);
 	getNextSymTable();
 	if (symTable.symbol != IDENFR) err(line, symTable.value);
+	insertId(symTable.value, category, type, 0, level);
+	insertPara(loc, type);
 	gtNodepSon = createTreeNode(symTable);
 	insert(*gtNodepp, gtNodepSon);
 	getNextSymTable();
@@ -602,10 +722,14 @@ void paralist(gtNodePointer* gtNodepp) {
 		insert(*gtNodepp, gtNodepSon);
 		getNextSymTable();
 		if (symTable.symbol != INTTK && symTable.symbol != CHARTK) err(line, symTable.value);
+		Category category = var;
+		Type type = symTable.symbol == INTTK ? Integer : Char;
 		gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
 		getNextSymTable();
 		if (symTable.symbol != IDENFR) err(line, symTable.value);
+		insertId(symTable.value, category, type, 0, level);
+		insertPara(loc, type);
 		gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
 		getNextSymTable();
@@ -625,6 +749,11 @@ void voidfunctiondef(gtNodePointer* gtNodepp) {
 		getNextSymTable();
 	}
 	if (symTable.symbol != IDENFR) err(line, symTable.value);
+	Category category = voidfunc;
+	Type type = Void;
+	returnType = type;
+	isReturned = 0;
+	insertId(symTable.value, category, type, 0, level);
 	gtNodepSon = createTreeNode(symTable);
 	insert(*gtNodepp, gtNodepSon);
 	strcpy(functions[functionNum].name, symTable.value);
@@ -634,14 +763,21 @@ void voidfunctiondef(gtNodePointer* gtNodepp) {
 	gtNodepSon = createTreeNode(symTable);
 	insert(*gtNodepp, gtNodepSon);
 	getNextSymTable(); 
+	level++;//进入下一层
 	if (symTable.symbol == INTTK || symTable.symbol == CHARTK || symTable.symbol == RPARENT) {
 		gtNodepSon = createTreeNode(PARALIST);
-		paralist(&gtNodepSon);
+		paralist(&gtNodepSon, idNum-1);
 		insert(*gtNodepp, gtNodepSon);
 	}
-	if (symTable.symbol != RPARENT) err(line, symTable.value);
-	gtNodepSon = createTreeNode(symTable);
-	insert(*gtNodepp, gtNodepSon);
+	if (symTable.symbol != RPARENT) {
+		errorPro(line, 'l');
+		err(line, symTable.value);
+		ungetsym = 1;
+	}
+	else {
+		gtNodepSon = createTreeNode(symTable);
+		insert(*gtNodepp, gtNodepSon);
+	}
 	getNextSymTable();
 	if (symTable.symbol != LBRACE) err(line, symTable.value);
 	gtNodepSon = createTreeNode(symTable);
@@ -654,6 +790,8 @@ void voidfunctiondef(gtNodePointer* gtNodepp) {
 	if (symTable.symbol != RBRACE) err(line, symTable.value);
 	gtNodepSon = createTreeNode(symTable);
 	insert(*gtNodepp, gtNodepSon);
+	clearLevel(level);
+	level--;//返回上一层
 }
 
 void mainfunction(gtNodePointer* gtNodepp) {
@@ -664,12 +802,20 @@ void mainfunction(gtNodePointer* gtNodepp) {
 	insert(*gtNodepp, gtNodepSon);
 	getNextSymTable();
 	if (symTable.symbol != LPARENT) err(line, symTable.value); 
+	level++;//进入下一层
+	returnType = Void;
 	gtNodepSon = createTreeNode(symTable);
 	insert(*gtNodepp, gtNodepSon);
 	getNextSymTable();
-	if (symTable.symbol != RPARENT) err(line, symTable.value);
-	gtNodepSon = createTreeNode(symTable);
-	insert(*gtNodepp, gtNodepSon);
+	if (symTable.symbol != RPARENT) {
+		errorPro(line, 'l');
+		err(line, symTable.value);
+		ungetsym = 1;
+	}
+	else {
+		gtNodepSon = createTreeNode(symTable);
+		insert(*gtNodepp, gtNodepSon);
+	}
 	getNextSymTable();
 	if (symTable.symbol != LBRACE) err(line, symTable.value);
 	gtNodepSon = createTreeNode(symTable);
@@ -682,6 +828,8 @@ void mainfunction(gtNodePointer* gtNodepp) {
 	if (symTable.symbol != RBRACE) err(line, symTable.value);
 	gtNodepSon = createTreeNode(symTable);
 	insert(*gtNodepp, gtNodepSon);
+	clearLevel(level);
+	level--;//返回上一层
 }
 
 void comstatement(gtNodePointer* gtNodepp) {
@@ -764,7 +912,14 @@ void statement(gtNodePointer* gtNodepp) {
 			insert(*gtNodepp, gtNodepSon);
 		}
 		else {
+			if (lineend == 1) {
+				errorPro(line - 1, 'k');
+			}
+			else {
+				errorPro(line, 'k');
+			}
 			err(line, symTable.value);
+			ungetsym = 1;
 		}
 	}
 	else if (symTable.symbol == SCANFTK) {
@@ -777,7 +932,14 @@ void statement(gtNodePointer* gtNodepp) {
 			insert(*gtNodepp, gtNodepSon);
 		}
 		else {
+			if (lineend == 1) {
+				errorPro(line - 1, 'k');
+			}
+			else {
+				errorPro(line, 'k');
+			}
 			err(line, symTable.value);
+			ungetsym = 1;
 		}
 	}
 	else if (symTable.symbol == PRINTFTK) {
@@ -790,7 +952,14 @@ void statement(gtNodePointer* gtNodepp) {
 			insert(*gtNodepp, gtNodepSon);
 		}
 		else {
+			if (lineend == 1) {
+				errorPro(line - 1, 'k');
+			}
+			else {
+				errorPro(line, 'k');
+			}
 			err(line, symTable.value);
+			ungetsym = 1;
 		}
 	}
 	else if (symTable.symbol == SWITCHTK) {
@@ -812,7 +981,14 @@ void statement(gtNodePointer* gtNodepp) {
 			insert(*gtNodepp, gtNodepSon);
 		}
 		else {
+			if (lineend == 1) {
+				errorPro(line - 1, 'k');
+			}
+			else {
+				errorPro(line, 'k');
+			}
 			err(line, symTable.value);
+			ungetsym = 1;
 		}
 	}
 	else if (symTable.symbol == LBRACE) {
@@ -854,9 +1030,15 @@ void loopstatement(gtNodePointer* gtNodepp) {
 		condition(&gtNodepSon);
 		insert(*gtNodepp, gtNodepSon);
 		getNextSymTable();
-		if (symTable.symbol != RPARENT) err(line, symTable.value); 
-		gtNodepSon = createTreeNode(symTable);
-		insert(*gtNodepp, gtNodepSon);
+		if (symTable.symbol != RPARENT) {
+			errorPro(line, 'l');
+			err(line, symTable.value);
+			ungetsym = 1;
+		}
+		else {
+			gtNodepSon = createTreeNode(symTable);
+			insert(*gtNodepp, gtNodepSon);
+		}
 		getNextSymTable();
 		gtNodePointer gtNodepSon = createTreeNode(STATEMENT);
 		statement(&gtNodepSon);
@@ -871,6 +1053,13 @@ void loopstatement(gtNodePointer* gtNodepp) {
 		insert(*gtNodepp, gtNodepSon);
 		getNextSymTable();
 		if (symTable.symbol != IDENFR) err(line, symTable.value); 
+		int searchResult = searchId(symTable.value);
+		if (searchResult == -1) {
+			errorPro(line, 'c');
+		}
+		else if (idTables[searchResult].category == con) {
+			errorPro(line, 'j');
+		}
 		gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
 		getNextSymTable();
@@ -882,7 +1071,11 @@ void loopstatement(gtNodePointer* gtNodepp) {
 		exp(&gtNodepSon);
 		insert(*gtNodepp, gtNodepSon);
 		getNextSymTable();
-		if (symTable.symbol != SEMICN) err(line, symTable.value);
+		if (symTable.symbol != SEMICN) {
+			errorPro(line, 'k');
+			err(line, symTable.value);
+			ungetsym = 1;
+		}
 		gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
 		getNextSymTable();
@@ -890,7 +1083,11 @@ void loopstatement(gtNodePointer* gtNodepp) {
 		condition(&gtNodepSon);
 		insert(*gtNodepp, gtNodepSon);
 		getNextSymTable();
-		if (symTable.symbol != SEMICN) err(line, symTable.value);
+		if (symTable.symbol != SEMICN) {
+			errorPro(line, 'k');
+			err(line, symTable.value);
+			ungetsym = 1;
+		}
 		gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
 		getNextSymTable();
@@ -919,9 +1116,15 @@ void loopstatement(gtNodePointer* gtNodepp) {
 		}
 		else err(line, symTable.value);
 		getNextSymTable();
-		if (symTable.symbol != RPARENT) err(line, symTable.value);
-		gtNodepSon = createTreeNode(symTable);
-		insert(*gtNodepp, gtNodepSon);
+		if (symTable.symbol != RPARENT) {
+			errorPro(line, 'l');
+			err(line, symTable.value);
+			ungetsym = 1;
+		}
+		else {
+			gtNodepSon = createTreeNode(symTable);
+			insert(*gtNodepp, gtNodepSon);
+		}
 		getNextSymTable();
 		gtNodepSon = createTreeNode(STATEMENT);
 		statement(&gtNodepSon);
@@ -956,7 +1159,11 @@ void conditionstatement(gtNodePointer* gtNodepp) {
 		gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
 	}
-	else err(line, symTable.value);
+	else {
+		errorPro(line, 'l');
+		err(line, symTable.value);
+		ungetsym = 1;
+	}
 	getNextSymTable();
 	gtNodepSon = createTreeNode(STATEMENT);
 	statement(&gtNodepSon);
@@ -979,6 +1186,9 @@ void condition(gtNodePointer* gtNodepp) {
 	gtNodePointer gtNodepSon = createTreeNode(EXP);
 	exp(&gtNodepSon);
 	insert(*gtNodepp, gtNodepSon);
+	if (getExpType(gtNodepSon) != Integer) {
+		errorPro(line, 'f');
+	}
 	getNextSymTable();
 	if (symTable.symbol == LSS|| symTable.symbol == LEQ|| symTable.symbol == GRE||
 		symTable.symbol == GEQ|| symTable.symbol == EQL|| symTable.symbol == NEQ) {
@@ -990,9 +1200,17 @@ void condition(gtNodePointer* gtNodepp) {
 	gtNodepSon = createTreeNode(EXP);
 	exp(&gtNodepSon);
 	insert(*gtNodepp, gtNodepSon);
+	if (getExpType(gtNodepSon) != Integer) {
+		errorPro(line, 'f');
+	}
 }
 
 void functioncall(gtNodePointer* gtNodepp) {
+	int searchResult = searchId(symTableArray[0].value);
+	if (searchResult == -1) {
+		errorPro(line, 'c');
+	}
+	IdTable func = idTables[searchResult];
 	gtNodePointer gtNodepSon = createTreeNode(symTableArray[0]);
 	symCount = 0;
 	insert(*gtNodepp, gtNodepSon);
@@ -1000,16 +1218,25 @@ void functioncall(gtNodePointer* gtNodepp) {
 	insert(*gtNodepp, gtNodepSon);
 	getNextSymTable();
 	gtNodepSon = createTreeNode(VALUEPARALIST);
-	valueparalist(&gtNodepSon);
+	valueparalist(&gtNodepSon, func);
 	insert(*gtNodepp, gtNodepSon);
 	if (symTable.symbol == RPARENT) {
 		gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
 	}
-	else err(line, symTable.value);
+	else {
+		errorPro(line, 'l');
+		err(line, symTable.value);
+		ungetsym = 1;
+	}
 }
 
 void voidfunctioncall(gtNodePointer* gtNodepp) {
+	int searchResult = searchId(symTableArray[0].value);
+	if (searchResult == -1) {
+		errorPro(line, 'c');
+	}
+	IdTable func = idTables[searchResult];
 	gtNodePointer gtNodepSon = createTreeNode(symTableArray[0]);
 	symCount = 0;
 	insert(*gtNodepp, gtNodepSon);
@@ -1017,20 +1244,37 @@ void voidfunctioncall(gtNodePointer* gtNodepp) {
 	insert(*gtNodepp, gtNodepSon);
 	getNextSymTable();
 	gtNodepSon = createTreeNode(VALUEPARALIST);
-	valueparalist(&gtNodepSon);
+	valueparalist(&gtNodepSon, func);
 	insert(*gtNodepp, gtNodepSon);
 	if (symTable.symbol == RPARENT) {
 		gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
 	}
-	else err(line, symTable.value);
+	else {
+		errorPro(line, 'l');
+		err(line, symTable.value);
+		ungetsym = 1;
+	}
 }
 
-void valueparalist(gtNodePointer* gtNodepp) {
-	if (symTable.symbol == RPARENT) return;
+void valueparalist(gtNodePointer* gtNodepp, IdTable func) {
+	if (symTable.symbol == RPARENT) {
+		if (func.paraNum != 0) {
+			errorPro(line, 'd');
+		}
+		return;
+	}
+	else if (symTable.symbol == SEMICN) {
+		return;
+	}
+	int realparaNum = 0;
 	gtNodePointer gtNodepSon = createTreeNode(EXP);
 	exp(&gtNodepSon);
 	insert(*gtNodepp, gtNodepSon);
+	if (realparaNum < func.paraNum && getExpType(gtNodepSon) != func.paralist[realparaNum]) {
+		errorPro(line, 'e');
+	}
+	realparaNum++;
 	getNextSymTable();
 	while (symTable.symbol == COMMA)
 	{
@@ -1040,7 +1284,14 @@ void valueparalist(gtNodePointer* gtNodepp) {
 		gtNodePointer gtNodepSon = createTreeNode(EXP);
 		exp(&gtNodepSon);
 		insert(*gtNodepp, gtNodepSon);
+		if (realparaNum <= func.paraNum && getExpType(gtNodepSon) != func.paralist[realparaNum]) {
+			errorPro(line, 'e');
+		}
+		realparaNum++;
 		getNextSymTable();
+	}
+	if (realparaNum > func.paraNum) {
+		errorPro(line, 'd');
 	}
 }
 
@@ -1052,17 +1303,34 @@ void arrayValueAt(gtNodePointer* gtNodepp) {
 	exp(&gtNodepSon);
 	insert(*gtNodepp, gtNodepSon);
 	getNextSymTable();
+	if (getExpType(gtNodepSon) != Integer) {
+		errorPro(line, 'i');
+	}
 	if (symTable.symbol == RBRACK) {
 		gtNodePointer gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
 	}
-	else err(line, symTable.value);
+	else {
+		errorPro(line, 'm');
+		err(line, symTable.value);
+		ungetsym = 1;
+	}
 }
 
 void assignstatement(gtNodePointer* gtNodepp) {
+	int searchResult = searchId(symTableArray[0].value);
+	if (searchResult == -1) {
+		errorPro(line, 'c');
+	}
+	else if (idTables[searchResult].category == con) {
+		errorPro(line, 'j');
+	}
 	gtNodePointer gtNodepSon = createTreeNode(symTableArray[0]);
 	symCount = 0;
 	insert(*gtNodepp, gtNodepSon);
+	if (symTable.symbol == ASSIGN && idTables[searchResult].category == array) {
+		errorPro(line, 'j');
+	}
 	if (symTable.symbol == LBRACK) {
 		while (symTable.symbol == LBRACK) {
 			arrayValueAt(gtNodepp);
@@ -1091,6 +1359,13 @@ void scan(gtNodePointer* gtNodepp) {
 	else err(line, symTable.value);
 	getNextSymTable();
 	if (symTable.symbol == IDENFR) {
+		int searchResult = searchId(symTable.value);
+		if (searchResult == -1) {
+			errorPro(line, 'c');
+		}
+		else if (idTables[searchResult].category == con || idTables[searchResult].category == array) {
+			errorPro(line, 'j');
+		}
 		gtNodePointer gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
 	}
@@ -1100,7 +1375,11 @@ void scan(gtNodePointer* gtNodepp) {
 		gtNodePointer gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
 	}
-	else err(line, symTable.value);
+	else {
+		errorPro(line, 'l');
+		err(line, symTable.value);
+		ungetsym = 1;
+	}
 }
 
 void print_(gtNodePointer* gtNodepp) {
@@ -1114,6 +1393,7 @@ void print_(gtNodePointer* gtNodepp) {
 	else err(line, symTable.value);
 	getNextSymTable();
 	if (symTable.symbol == STRCON) {
+		symCheck(symTable);
 		gtNodePointer gtNodepSon = createTreeNode(STRING);
 		string_(&gtNodepSon);
 		insert(*gtNodepp, gtNodepSon);
@@ -1138,7 +1418,9 @@ void print_(gtNodePointer* gtNodepp) {
 		insert(*gtNodepp, gtNodepSon);
 	}
 	else {
+		errorPro(line, 'l');
 		err(line, symTable.value);
+		ungetsym = 1;
 	}
 }
 
@@ -1162,13 +1444,16 @@ void switch_(gtNodePointer* gtNodepp) {
 	gtNodepSon = createTreeNode(EXP);
 	exp(&gtNodepSon);
 	insert(*gtNodepp, gtNodepSon);
+	Type type = getExpType(gtNodepSon);
 	getNextSymTable();
 	if (symTable.symbol == RPARENT) {
 		gtNodePointer gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
 	}
 	else {
+		errorPro(line, 'l');
 		err(line, symTable.value);
+		ungetsym = 1;
 	}
 	getNextSymTable();
 	if (symTable.symbol == LBRACE) {
@@ -1181,7 +1466,7 @@ void switch_(gtNodePointer* gtNodepp) {
 	getNextSymTable();
 	if (symTable.symbol == CASETK) {
 		gtNodePointer gtNodepSon = createTreeNode(CASELIST);
-		caselist(&gtNodepSon);
+		caselist(&gtNodepSon, type);
 		insert(*gtNodepp, gtNodepSon);
 	}
 	else {
@@ -1194,7 +1479,9 @@ void switch_(gtNodePointer* gtNodepp) {
 		insert(*gtNodepp, gtNodepSon);
 	}
 	else {
+		errorPro(line, 'p');
 		err(line, symTable.value);
+		ungetsym = 1;
 	}
 	getNextSymTable();
 	if (symTable.symbol == RBRACE) {
@@ -1206,17 +1493,17 @@ void switch_(gtNodePointer* gtNodepp) {
 	}
 }
 
-void caselist(gtNodePointer* gtNodepp) {
+void caselist(gtNodePointer* gtNodepp, Type type) {
 	while (symTable.symbol == CASETK) {
 		gtNodePointer gtNodepSon = createTreeNode(CASE);
-		case_(&gtNodepSon);
+		case_(&gtNodepSon, type);
 		insert(*gtNodepp, gtNodepSon);
 		getNextSymTable();
 	}
 	ungetsym = 1;
 }
 
-void case_(gtNodePointer* gtNodepp) {
+void case_(gtNodePointer* gtNodepp, Type type) {
 	gtNodePointer gtNodepSon = createTreeNode(symTable);
 	insert(*gtNodepp, gtNodepSon);
 	getNextSymTable();
@@ -1224,6 +1511,9 @@ void case_(gtNodePointer* gtNodepp) {
 		gtNodePointer gtNodepSon = createTreeNode(CONST);
 		const_(&gtNodepSon);
 		insert(*gtNodepp, gtNodepSon);
+		if ((symTable.symbol != CHARCON && type == Char) || (symTable.symbol == CHARCON && type == Integer)) {
+			errorPro(line, 'o');
+		}
 	}
 	else {
 		err(line, symTable.value);
@@ -1264,22 +1554,34 @@ void return_(gtNodePointer* gtNodepp) {
 	insert(*gtNodepp, gtNodepSon);
 	getNextSymTable();
 	if (symTable.symbol == LPARENT) {
+		if (returnType == Void) {
+			errorPro(line, 'g');
+		}
 		gtNodePointer gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
 		getNextSymTable();
 		gtNodepSon = createTreeNode(EXP);
 		exp(&gtNodepSon);
 		insert(*gtNodepp, gtNodepSon);
+		if (getExpType(gtNodepSon) != returnType && returnType != Void) {
+			errorPro(line, 'h');
+		}
 		getNextSymTable();
 		if (symTable.symbol == RPARENT) {
 			gtNodePointer gtNodepSon = createTreeNode(symTable);
 			insert(*gtNodepp, gtNodepSon);
 		}
 		else {
+			errorPro(line, 'l');
 			err(line, symTable.value);
+			ungetsym = 1;
 		}
+		isReturned = 1;
 	}
 	else {
+		if (returnType != Void) {
+			errorPro(line, 'h');
+		}
 		ungetsym = 1;
 	}
 }
@@ -1325,46 +1627,21 @@ void item(gtNodePointer* gtNodepp) {
 
 void factor(gtNodePointer* gtNodepp) {
 	if (symTable.symbol == IDENFR) {
+		int searchResult = searchId(symTable.value);
+		if (searchResult == -1) {
+			errorPro(line, 'c');
+		}
 		symTableArray[symCount++] = symTable;
 		getNextSymTable();
 		if (symTable.symbol == LBRACK) {
 			gtNodePointer gtNodepSon = createTreeNode(symTableArray[0]);
+			insert(*gtNodepp, gtNodepSon);
 			symCount = 0;
-			insert(*gtNodepp, gtNodepSon);
-			gtNodepSon = createTreeNode(symTable);
-			insert(*gtNodepp, gtNodepSon);
-			getNextSymTable();
-			gtNodepSon = createTreeNode(EXP);
-			exp(&gtNodepSon);
-			insert(*gtNodepp, gtNodepSon);
-			getNextSymTable();
-			if (symTable.symbol == RBRACK) {
-				gtNodePointer gtNodepSon = createTreeNode(symTable);
-				insert(*gtNodepp, gtNodepSon);
-			}
-			else {
-				err(line, symTable.value);
-			}
-			getNextSymTable();
-			if (symTable.symbol == LBRACK) {
-				gtNodePointer gtNodepSon = createTreeNode(symTable);
-				insert(*gtNodepp, gtNodepSon);
+			while (symTable.symbol == LBRACK) {
+				arrayValueAt(gtNodepp);
 				getNextSymTable();
-				gtNodepSon = createTreeNode(EXP);
-				exp(&gtNodepSon);
-				insert(*gtNodepp, gtNodepSon);
-				getNextSymTable();
-				if (symTable.symbol == RBRACK) {
-					gtNodePointer gtNodepSon = createTreeNode(symTable);
-					insert(*gtNodepp, gtNodepSon);
-				}
-				else {
-					err(line, symTable.value);
-				}
 			}
-			else {
-				ungetsym = 1;
-			}
+			ungetsym = 1;
 		}
 		else if (symTable.symbol == LPARENT) {
 			gtNodePointer gtNodepSon = createTreeNode(FUNCTIONCALL);
@@ -1373,8 +1650,8 @@ void factor(gtNodePointer* gtNodepp) {
 		}
 		else {
 			gtNodePointer gtNodepSon = createTreeNode(symTableArray[0]);
-			symCount = 0;
 			insert(*gtNodepp, gtNodepSon);
+			symCount = 0;
 			ungetsym = 1;
 		}
 	}
@@ -1391,7 +1668,9 @@ void factor(gtNodePointer* gtNodepp) {
 			insert(*gtNodepp, gtNodepSon);
 		}
 		else {
+			errorPro(line, 'l');
 			err(line, symTable.value);
+			ungetsym = 1;
 		}
 	}
 	else if (symTable.symbol == PLUS || symTable.symbol == MINU || symTable.symbol == INTCON) {
@@ -1400,12 +1679,39 @@ void factor(gtNodePointer* gtNodepp) {
 		insert(*gtNodepp, gtNodepSon);
 	}
 	else if (symTable.symbol == CHARCON) {
+		symCheck(symTable);
 		gtNodePointer gtNodepSon = createTreeNode(symTable);
 		insert(*gtNodepp, gtNodepSon);
 	}
 	else {
 		err(line, symTable.value);
 	}
+}
+
+Type getExpType(gtNodePointer gtNodep) {
+	if (gtNodep->sonNode[1] != NULL) return Integer;//唯一项
+	gtNodePointer gtNodepSon = gtNodep->sonNode[0];
+	if (gtNodepSon->sonNode[1] != NULL) return Integer;//唯一因子
+	gtNodepSon = gtNodepSon->sonNode[0];
+	gtNodepSon = gtNodepSon->sonNode[0];
+	if (gtNodepSon->vn == FUNCTIONCALL) {
+		gtNodepSon = gtNodepSon->sonNode[0];
+		int searchResult = searchId(gtNodepSon->symTable->value);
+		if (idTables[searchResult].type == Char) return Char;
+		else return Integer;
+	}
+	else if (gtNodepSon->symTable != NULL) {
+		SymTable* factorSym = gtNodepSon->symTable;
+		if (factorSym->symbol == IDENFR) {
+			int searchResult = searchId(factorSym->value);
+			if (idTables[searchResult].type == Char) return Char;
+			else return Integer;
+		}
+		else if (factorSym->symbol == CHARCON) {
+			return Char;
+		}
+	}
+	return Integer;
 }
 
 void parsering(FILE* in) {

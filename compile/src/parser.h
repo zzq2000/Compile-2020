@@ -1,6 +1,7 @@
 #ifndef PARSER
 #define PARSER
 #include "symTables.h"
+#include "idTable.h"
 typedef enum {
 	PROGRAM = 0,
 	CONSTSTATE,
@@ -71,7 +72,7 @@ void multoperator(gtNodePointer*);
 void functiondef(gtNodePointer*);
 void voidfunctiondef(gtNodePointer*);
 void statehead(gtNodePointer*);
-void paralist(gtNodePointer*);
+void paralist(gtNodePointer*, int);
 void mainfunction(gtNodePointer*);
 void comstatement(gtNodePointer*);
 void statementlist(gtNodePointer*);
@@ -83,17 +84,18 @@ void condition(gtNodePointer*);
 void relationoperator(gtNodePointer*);
 void functioncall(gtNodePointer*);
 void voidfunctioncall(gtNodePointer*);
-void valueparalist(gtNodePointer*);
+void valueparalist(gtNodePointer*, IdTable);
 void assignstatement(gtNodePointer*);
 void scan(gtNodePointer*);
 void print_(gtNodePointer*);
 void string_(gtNodePointer*);
 void switch_(gtNodePointer*);
-void caselist(gtNodePointer*);
-void case_(gtNodePointer*);
+void caselist(gtNodePointer*, Type);
+void case_(gtNodePointer*, Type);
 void default_(gtNodePointer*);
 void return_(gtNodePointer*);
 void exp(gtNodePointer*);
 void item(gtNodePointer*);
 void factor(gtNodePointer*);
+Type getExpType(gtNodePointer);
 #endif // 

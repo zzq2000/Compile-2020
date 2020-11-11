@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "symTables.h"
 #include "parser.h"
+#include "error.h"
 void print2file(FILE*);
 int main() {
 	FILE* inFile, * outFile;
@@ -14,7 +15,7 @@ int main() {
 	//print2file(outFile);
 	parsering(inFile);
 
-	gt2file(outFile, grammerTree);
+	//gt2file(outFile, grammerTree);
 	fclose(inFile);
 	fclose(outFile);
 }

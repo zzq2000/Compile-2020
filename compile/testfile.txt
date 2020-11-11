@@ -1,48 +1,30 @@
-void main()
-{
-    int N[2][4] = {{1,2,3,4},{5,6,7,8}};
-    int i, j;
-    if (N[0][0] == 1)
-    {
-        printf("18231210");
-    }
-
-    for (i = 0; i < 2; i=i+1)
-    {
-        for (j = 0; j < 4; j=j+1)
-        {
-            switch (N[i][j])
-            {
-            case 1:
-                printf(1);
-            case 2:
-                printf(2);
-            case 3:
-                printf(3);
-            case 4:
-                printf(4);
-            case 5:
-                printf(5);
-            case 6:
-                printf(6);
-            case 7:
-                printf(7);
-            default:
-                printf(8);
-            }
-        }
-    }
-
-    switch (N[0][0])
-    {
-        case 1:
-            N[0][0] = 0;
-        default:
-            N[0][0] = 1;
-	}
-
-    if (N[0][0] != 2)
-    {
-        printf("finish");
-    }
+const char anm='a',bal='b';
+int arr[3];
+char Woo(){
+    return('a');
+}
+void main(){
+int x,y;
+char c;
+int testarr[300];
+for(x = 0; x < 300; x = x+1){
+    testarr[x] = 10;
+};;
+x = (+11 ;
+y = - 12;
+printf( "18373803" );
+printf(x);
+printf(y);
+printf("-(x+y)=",-(x+y));
+if(1>0)
+    printf("1>0");
+if(-1<0)
+    printf("-1<0");
+if(0==0){};
+printf( "18373803" );
+printf(testarr[Woo()]);;;
+printf( "18373803" );
+printf( "18373803" );
+printf( "18373803" );
+printf(testarr['a']);;;
 }

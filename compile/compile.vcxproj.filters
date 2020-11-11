@@ -24,6 +24,9 @@
     <ClInclude Include="src\error.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="src\idTable.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\parser.cpp">
@@ -36,6 +39,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="src\Main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\idTable.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

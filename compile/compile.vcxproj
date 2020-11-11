@@ -142,12 +142,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\error.h" />
+    <ClInclude Include="src\idTable.h" />
     <ClInclude Include="src\parser.h" />
     <ClInclude Include="src\symTables.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\error.cpp" />
     <ClCompile Include="src\getSym.cpp" />
+    <ClCompile Include="src\idTable.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\parser.cpp" />
   </ItemGroup>
