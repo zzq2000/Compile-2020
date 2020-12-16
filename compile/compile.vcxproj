@@ -143,15 +143,23 @@
   <ItemGroup>
     <ClInclude Include="src\error.h" />
     <ClInclude Include="src\idTable.h" />
+    <ClInclude Include="src\Intermediate.h" />
+    <ClInclude Include="src\objectCode.h" />
     <ClInclude Include="src\parser.h" />
+    <ClInclude Include="src\register.h" />
+    <ClInclude Include="src\str.h" />
     <ClInclude Include="src\symTables.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\error.cpp" />
     <ClCompile Include="src\getSym.cpp" />
     <ClCompile Include="src\idTable.cpp" />
+    <ClCompile Include="src\Intermediate.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\objectCode.cpp" />
     <ClCompile Include="src\parser.cpp" />
+    <ClCompile Include="src\register.cpp" />
+    <ClCompile Include="src\str.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="output.txt" />

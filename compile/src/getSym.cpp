@@ -33,7 +33,7 @@ void catToken(int c) {
 }
 
 int selectKey() {
-	char token_[128];
+	char* token_ = (char*)malloc(sizeof(char) * tokenlen + 4);
 	for (int i = 0; i < tokenlen; i++) {
 		token_[i] = tolower(token[i]);
 	}
@@ -97,8 +97,15 @@ void getsym(FILE* inFile, int c) {
 	else if (c == '\"') {
 		c = getchar_(inFile);
 		while (c != '\"') {
-			catToken(c);
-			c = getchar_(inFile);
+			if (c != '\\') {
+				catToken(c);
+				c = getchar_(inFile);
+			}
+			else {
+				catToken(c);
+				catToken('\\');
+				c = getchar_(inFile);
+			}
 		}
 		symbol_ = STRCON;
 	}
@@ -211,7 +218,7 @@ SymTable getsym_(FILE* inFile) {
 		getsym(inFile, c);
 		if (tokenlen != 0) {
 			symTable.symbol = symbol_;
-			symTable.value = (char *)malloc(sizeof(char) * tokenlen + 1);
+			symTable.value = (char *)malloc(sizeof(char) * tokenlen + 4);
 			if (symTable.value != NULL)
 				strcpy(symTable.value, token);
 			return symTable;

@@ -1,0 +1,670 @@
+lui $v1, 0x1001
+main:
+la $fp, ($sp)
+addi $t0, $0, 0
+sw $t0, -28($fp)
+addi $sp, $fp, -28
+subi $sp, $sp, 4
+sw $fp, ($sp)
+la $fp, -4($sp)
+jal myscanf
+la $sp, 4($fp)
+lw $fp, ($sp)
+addi $sp, $sp, 4
+move $t0, $v0
+sw $t0, -4($fp)
+subi $sp, $sp, 4
+sw $fp, ($sp)
+la $fp, -4($sp)
+jal myscanf
+la $sp, 4($fp)
+lw $fp, ($sp)
+addi $sp, $sp, 4
+move $t0, $v0
+sw $t0, -8($fp)
+subi $sp, $sp, 4
+sw $fp, ($sp)
+la $fp, -4($sp)
+jal myscanf
+la $sp, 4($fp)
+lw $fp, ($sp)
+addi $sp, $sp, 4
+move $t0, $v0
+sw $t0, -12($fp)
+subi $sp, $sp, 4
+sw $fp, ($sp)
+la $fp, -4($sp)
+jal myscanf
+la $sp, 4($fp)
+lw $fp, ($sp)
+addi $sp, $sp, 4
+move $t0, $v0
+sw $t0, -20($fp)
+LABEL44:
+lw $s0, -20($fp)
+lw $s1, -28($fp)
+slt $t0, $s1, $s0
+beq $t0, $0, LABEL45
+lw $s0, -28($fp)
+mul $t0, $s0, 4
+div $t1, $s0, 10
+mul $t2, $t1, 10
+sub $t3, $s0, $t2
+addi $t4, $t0, 0
+addu $t4, $t4, $v1
+sw $t3, ($t4)
+lw $s0, -28($fp)
+addi $t0, $s0, 1
+sw $t0, -28($fp)
+j LABEL44
+LABEL45:
+subi $sp, $sp, 4
+sw $fp, ($sp)
+la $fp, -4($sp)
+jal myscanf
+la $sp, 4($fp)
+lw $fp, ($sp)
+addi $sp, $sp, 4
+move $t0, $v0
+sw $t0, -16($fp)
+addi $t0, $0, 0
+sw $t0, -28($fp)
+LABEL46:
+lw $s0, -16($fp)
+lw $s1, -28($fp)
+slt $t0, $s1, $s0
+beq $t0, $0, LABEL47
+lw $s0, -28($fp)
+mul $t0, $s0, 4
+subi $sp, $sp, 4
+sw $s0, 0($sp)
+subi $sp, $sp, 4
+sw $t0, 0($sp)
+subi $sp, $sp, 4
+sw $fp, ($sp)
+la $fp, -4($sp)
+jal myscanf
+la $sp, 4($fp)
+lw $fp, ($sp)
+addi $sp, $sp, 4
+lw $t0, 0($sp)
+addi $sp, $sp, 4
+lw $s0, 0($sp)
+addi $sp, $sp, 4
+move $t1, $v0
+addi $t2, $t0, 8000
+addu $t2, $t2, $v1
+sw $t1, ($t2)
+lw $s0, -28($fp)
+addi $t0, $s0, 1
+sw $t0, -28($fp)
+j LABEL46
+LABEL47:
+addi $t0, $0, 0
+sw $t0, -28($fp)
+LABEL48:
+lw $s0, -16($fp)
+lw $s1, -28($fp)
+slt $t0, $s1, $s0
+beq $t0, $0, LABEL49
+lw $s0, -28($fp)
+mul $t0, $s0, 4
+addi $t1, $t0, 8000
+addu $t1, $t1, $v1
+lw $t2, ($t1)
+subi $sp, $sp, 4
+sw $s0, 0($sp)
+subi $sp, $sp, 12
+sw $t0, 0($sp)
+sw $t1, 4($sp)
+sw $t2, 8($sp)
+subi $sp, $sp, 4
+sw $fp, ($sp)
+move $a1, $t2
+lw $s1, -8($fp)
+move $a2, $s1
+lw $s1, -12($fp)
+move $a3, $s1
+subi $sp, $sp, 4
+lw $s1, -4($fp)
+sw $s1, ($sp)
+la $fp, -4($sp)
+jal convn
+la $sp, 4($fp)
+addi $sp, $sp, 4
+lw $fp, ($sp)
+addi $sp, $sp, 4
+lw $t0, 0($sp)
+lw $t1, 4($sp)
+lw $t2, 8($sp)
+addi $sp, $sp, 12
+lw $s0, 0($sp)
+addi $sp, $sp, 4
+move $t3, $v0
+lw $s1, -12($fp)
+lw $s2, -8($fp)
+mul $t4, $s2, $s1
+subi $sp, $sp, 12
+sw $s0, 0($sp)
+sw $s1, 4($sp)
+sw $s2, 8($sp)
+subi $sp, $sp, 20
+sw $t0, 0($sp)
+sw $t1, 4($sp)
+sw $t2, 8($sp)
+sw $t3, 12($sp)
+sw $t4, 16($sp)
+subi $sp, $sp, 4
+sw $fp, ($sp)
+move $a1, $t4
+la $fp, -4($sp)
+jal mymemmove
+la $sp, 4($fp)
+lw $fp, ($sp)
+addi $sp, $sp, 4
+lw $t0, 0($sp)
+lw $t1, 4($sp)
+lw $t2, 8($sp)
+lw $t3, 12($sp)
+lw $t4, 16($sp)
+addi $sp, $sp, 20
+lw $s0, 0($sp)
+lw $s1, 4($sp)
+lw $s2, 8($sp)
+addi $sp, $sp, 12
+addi $t5, $s0, 1
+sw $t5, -28($fp)
+j LABEL48
+LABEL49:
+addi $t0, $0, 0
+sw $t0, -28($fp)
+LABEL50:
+lw $s0, -12($fp)
+lw $s1, -8($fp)
+mul $t0, $s1, $s0
+lw $s2, -28($fp)
+slt $t1, $s2, $t0
+beq $t1, $0, LABEL51
+lw $s0, -28($fp)
+mul $t0, $s0, 4
+addi $t1, $t0, 0
+addu $t1, $t1, $v1
+lw $t2, ($t1)
+subi $sp, $sp, 4
+sw $s0, 0($sp)
+subi $sp, $sp, 12
+sw $t0, 0($sp)
+sw $t1, 4($sp)
+sw $t2, 8($sp)
+subi $sp, $sp, 4
+sw $fp, ($sp)
+move $a1, $t2
+la $fp, -4($sp)
+jal myprintf
+la $sp, 4($fp)
+lw $fp, ($sp)
+addi $sp, $sp, 4
+lw $t0, 0($sp)
+lw $t1, 4($sp)
+lw $t2, 8($sp)
+addi $sp, $sp, 12
+lw $s0, 0($sp)
+addi $sp, $sp, 4
+addi $t3, $s0, 1
+sw $t3, -28($fp)
+j LABEL50
+LABEL51:
+li $v0, 10
+syscall
+li $v0, 10
+syscall
+myscanf:
+addi $sp, $fp, -4
+li $v0, 5
+syscall
+sw $v0, -4($fp)
+lw $s0, -4($fp)
+move $v0, $s0
+jr $ra
+myprintf:
+addi $sp, $fp, -4
+li $v0, 1
+move $a0, $a1
+syscall
+li $v0, 11
+li $a0, 10
+syscall
+jr $ra
+jr $ra
+checkrange:
+addi $sp, $fp, -4
+LABEL0:
+sgt $t0, $a1, 1073741824
+beq $t0, $0, LABEL1
+subi $t0, $a1, 1073741824
+move $a1, $t0
+j LABEL0
+LABEL1:
+LABEL2:
+addi $t0, $0, 0
+slt $t1, $a1, $t0
+beq $t1, $0, LABEL3
+addi $t0, $a1, 1073741824
+move $a1, $t0
+j LABEL2
+LABEL3:
+move $v0, $a1
+jr $ra
+reduce:
+addi $sp, $fp, -20
+seq $t0, $a1, 0
+beq $t0, $0, LABEL4
+addu $t0, $a2, $a3
+subi $sp, $sp, 4
+sw $t0, 0($sp)
+subi $sp, $sp, 4
+sw $ra, ($sp)
+subi $sp, $sp, 4
+sw $fp, ($sp)
+move $a1, $t0
+la $fp, -4($sp)
+jal checkrange
+la $sp, 4($fp)
+lw $fp, ($sp)
+addi $sp, $sp, 4
+lw $ra, ($sp)
+addi $sp, $sp, 4
+lw $t0, 0($sp)
+addi $sp, $sp, 4
+move $t1, $v0
+move $v0, $t1
+jr $ra
+LABEL4:
+seq $t0, $a1, 1
+beq $t0, $0, LABEL5
+addi $t0, $0, 0
+sw $t0, -16($fp)
+addi $t0, $0, 1
+sw $t0, -20($fp)
+LABEL6:
+addi $t0, $0, 1073741824
+lw $s0, -20($fp)
+slt $t1, $s0, $t0
+beq $t1, $0, LABEL7
+lw $s0, -20($fp)
+div $t0, $a2, $s0
+div $t1, $a2, $s0
+div $t2, $t1, 2
+mul $t3, $t2, 2
+sub $t4, $t0, $t3
+div $t5, $a3, $s0
+div $t6, $a3, $s0
+div $t7, $t6, 2
+mul $t8, $t7, 2
+sub $t9, $t5, $t8
+seq $t8, $t4, $t9
+beq $t8, $0, LABEL8
+lw $s0, -16($fp)
+mul $t0, $s0, 2
+sw $t0, -16($fp)
+j LABEL9
+LABEL8:
+lw $s0, -16($fp)
+mul $t0, $s0, 2
+addi $t1, $t0, 1
+sw $t1, -16($fp)
+LABEL9:
+lw $s0, -20($fp)
+mul $t0, $s0, 2
+sw $t0, -20($fp)
+j LABEL6
+LABEL7:
+lw $s0, -16($fp)
+move $v0, $s0
+jr $ra
+LABEL5:
+seq $t0, $a1, 2
+beq $t0, $0, LABEL10
+sgt $t0, $a2, $a3
+beq $t0, $0, LABEL11
+move $v0, $a2
+jr $ra
+j LABEL12
+LABEL11:
+move $v0, $a3
+jr $ra
+LABEL12:
+LABEL10:
+seq $t0, $a1, 3
+beq $t0, $0, LABEL13
+addi $t0, $0, 0
+sw $t0, -16($fp)
+addi $t0, $0, 1
+sw $t0, -20($fp)
+LABEL14:
+addi $t0, $0, 1073741824
+lw $s0, -20($fp)
+slt $t1, $s0, $t0
+beq $t1, $0, LABEL15
+lw $s0, -20($fp)
+div $t0, $a2, $s0
+div $t1, $a2, $s0
+div $t2, $t1, 2
+mul $t3, $t2, 2
+sub $t4, $t0, $t3
+seq $t5, $t4, 1
+beq $t5, $0, LABEL16
+lw $s0, -16($fp)
+mul $t0, $s0, 2
+addi $t1, $t0, 1
+sw $t1, -16($fp)
+j LABEL17
+LABEL16:
+lw $s0, -20($fp)
+div $t0, $a3, $s0
+div $t1, $a3, $s0
+div $t2, $t1, 2
+mul $t3, $t2, 2
+sub $t4, $t0, $t3
+seq $t5, $t4, 1
+beq $t5, $0, LABEL18
+lw $s0, -16($fp)
+mul $t0, $s0, 2
+addi $t1, $t0, 1
+sw $t1, -16($fp)
+LABEL18:
+lw $s0, -16($fp)
+mul $t0, $s0, 2
+sw $t0, -16($fp)
+LABEL17:
+lw $s0, -20($fp)
+mul $t0, $s0, 2
+sw $t0, -20($fp)
+j LABEL14
+LABEL15:
+lw $s0, -16($fp)
+move $v0, $s0
+jr $ra
+LABEL13:
+seq $t0, $a1, 4
+beq $t0, $0, LABEL19
+addi $t0, $0, 0
+sw $t0, -16($fp)
+addi $t0, $0, 1
+sw $t0, -20($fp)
+LABEL20:
+addi $t0, $0, 1073741824
+lw $s0, -20($fp)
+slt $t1, $s0, $t0
+beq $t1, $0, LABEL21
+lw $s0, -20($fp)
+div $t0, $a2, $s0
+div $t1, $a2, $s0
+div $t2, $t1, 2
+mul $t3, $t2, 2
+sub $t4, $t0, $t3
+seq $t5, $t4, 1
+beq $t5, $0, LABEL22
+lw $s0, -20($fp)
+div $t0, $a3, $s0
+div $t1, $a3, $s0
+div $t2, $t1, 2
+mul $t3, $t2, 2
+sub $t4, $t0, $t3
+seq $t5, $t4, 1
+beq $t5, $0, LABEL23
+lw $s0, -16($fp)
+mul $t0, $s0, 2
+addi $t1, $t0, 1
+sw $t1, -16($fp)
+j LABEL24
+LABEL23:
+lw $s0, -16($fp)
+mul $t0, $s0, 2
+sw $t0, -16($fp)
+LABEL24:
+j LABEL25
+LABEL22:
+lw $s0, -16($fp)
+mul $t0, $s0, 2
+sw $t0, -16($fp)
+LABEL25:
+lw $s0, -20($fp)
+mul $t0, $s0, 2
+sw $t0, -20($fp)
+j LABEL20
+LABEL21:
+lw $s0, -16($fp)
+move $v0, $s0
+jr $ra
+LABEL19:
+addi $v0, $0, 0
+jr $ra
+getvalue:
+addi $sp, $fp, -16
+addi $t0, $0, 0
+slt $t1, $a3, $t0
+beq $t1, $0, LABEL26
+addi $v0, $0, 0
+jr $ra
+LABEL26:
+addi $t0, $0, 0
+lw $s0, 4($fp)
+slt $t1, $s0, $t0
+beq $t1, $0, LABEL27
+addi $v0, $0, 0
+jr $ra
+LABEL27:
+sge $t0, $a3, $a1
+beq $t0, $0, LABEL28
+addi $v0, $0, 0
+jr $ra
+LABEL28:
+lw $s0, 4($fp)
+sge $t0, $s0, $a2
+beq $t0, $0, LABEL29
+addi $v0, $0, 0
+jr $ra
+LABEL29:
+mul $t0, $a3, $a2
+lw $s0, 4($fp)
+addu $t1, $t0, $s0
+mul $t2, $t1, 4
+addi $t3, $t2, 0
+addu $t3, $t3, $v1
+lw $t4, ($t3)
+move $v0, $t4
+jr $ra
+convn:
+addi $t0, $0, 0
+sw $t0, -20($fp)
+addi $t0, $0, 0
+sw $t0, -24($fp)
+addi $t0, $0, 1
+sw $t0, -40($fp)
+addi $t0, $0, 1
+sw $t0, -44($fp)
+addi $t0, $0, 1
+sw $t0, -48($fp)
+addi $t0, $0, 1
+sw $t0, -52($fp)
+addi $sp, $fp, -52
+LABEL30:
+lw $s0, -40($fp)
+seq $t0, $s0, 1
+beq $t0, $0, LABEL31
+addi $t0, $0, 0
+sw $t0, -24($fp)
+LABEL32:
+lw $s0, -44($fp)
+seq $t0, $s0, 1
+beq $t0, $0, LABEL33
+addi $t0, $0, 0
+sw $t0, -36($fp)
+lw $s0, 4($fp)
+div $t0, $s0, 2
+lw $s1, -20($fp)
+sub $t1, $s1, $t0
+sw $t1, -28($fp)
+LABEL34:
+lw $s0, -48($fp)
+seq $t0, $s0, 1
+beq $t0, $0, LABEL35
+lw $s0, 4($fp)
+div $t0, $s0, 2
+lw $s1, -24($fp)
+sub $t1, $s1, $t0
+sw $t1, -32($fp)
+LABEL36:
+lw $s0, -52($fp)
+seq $t0, $s0, 1
+beq $t0, $0, LABEL37
+subi $sp, $sp, 12
+sw $a1, 0($sp)
+sw $a2, 4($sp)
+sw $a3, 8($sp)
+subi $sp, $sp, 4
+sw $ra, ($sp)
+subi $sp, $sp, 4
+sw $fp, ($sp)
+move $a1, $a2
+move $a2, $a3
+lw $s0, -28($fp)
+move $a3, $s0
+subi $sp, $sp, 4
+lw $s0, -32($fp)
+sw $s0, ($sp)
+la $fp, -4($sp)
+jal getvalue
+la $sp, 4($fp)
+addi $sp, $sp, 4
+lw $fp, ($sp)
+addi $sp, $sp, 4
+lw $ra, ($sp)
+addi $sp, $sp, 4
+lw $a1, 0($sp)
+lw $a2, 4($sp)
+lw $a3, 8($sp)
+addi $sp, $sp, 12
+move $t0, $v0
+subi $sp, $sp, 4
+sw $t0, 0($sp)
+subi $sp, $sp, 12
+sw $a1, 0($sp)
+sw $a2, 4($sp)
+sw $a3, 8($sp)
+subi $sp, $sp, 4
+sw $ra, ($sp)
+subi $sp, $sp, 4
+sw $fp, ($sp)
+move $a1, $a1
+lw $s0, -36($fp)
+move $a2, $s0
+move $a3, $t0
+la $fp, -4($sp)
+jal reduce
+la $sp, 4($fp)
+lw $fp, ($sp)
+addi $sp, $sp, 4
+lw $ra, ($sp)
+addi $sp, $sp, 4
+lw $a1, 0($sp)
+lw $a2, 4($sp)
+lw $a3, 8($sp)
+addi $sp, $sp, 12
+lw $t0, 0($sp)
+addi $sp, $sp, 4
+move $t1, $v0
+sw $t1, -36($fp)
+lw $s0, -32($fp)
+addi $t0, $s0, 1
+sw $t0, -32($fp)
+lw $s0, 4($fp)
+div $t0, $s0, 2
+lw $s1, -24($fp)
+addu $t1, $s1, $t0
+lw $s2, -32($fp)
+sge $t2, $s2, $t1
+beq $t2, $0, LABEL38
+addi $t0, $0, 0
+sw $t0, -52($fp)
+LABEL38:
+j LABEL36
+LABEL37:
+addi $t0, $0, 1
+sw $t0, -52($fp)
+lw $s0, -28($fp)
+addi $t0, $s0, 1
+sw $t0, -28($fp)
+lw $s0, 4($fp)
+div $t0, $s0, 2
+lw $s1, -20($fp)
+addu $t1, $s1, $t0
+lw $s2, -28($fp)
+sge $t2, $s2, $t1
+beq $t2, $0, LABEL39
+addi $t0, $0, 0
+sw $t0, -48($fp)
+LABEL39:
+j LABEL34
+LABEL35:
+addi $t0, $0, 1
+sw $t0, -48($fp)
+lw $s0, -20($fp)
+mul $t0, $s0, $a3
+lw $s1, -24($fp)
+addu $t1, $t0, $s1
+mul $t2, $t1, 4
+lw $s2, -36($fp)
+addi $t3, $t2, 4000
+addu $t3, $t3, $v1
+sw $s2, ($t3)
+lw $s0, -24($fp)
+addi $t0, $s0, 1
+sw $t0, -24($fp)
+lw $s0, -24($fp)
+sge $t0, $s0, $a3
+beq $t0, $0, LABEL40
+addi $t0, $0, 0
+sw $t0, -44($fp)
+LABEL40:
+j LABEL32
+LABEL33:
+addi $t0, $0, 1
+sw $t0, -44($fp)
+lw $s0, -20($fp)
+addi $t0, $s0, 1
+sw $t0, -20($fp)
+lw $s0, -20($fp)
+sge $t0, $s0, $a2
+beq $t0, $0, LABEL41
+addi $t0, $0, 0
+sw $t0, -40($fp)
+LABEL41:
+j LABEL30
+LABEL31:
+addi $v0, $0, 0
+jr $ra
+mymemmove:
+addi $t0, $0, 0
+sw $t0, -8($fp)
+addi $sp, $fp, -8
+LABEL42:
+lw $s0, -8($fp)
+slt $t0, $s0, $a1
+beq $t0, $0, LABEL43
+lw $s0, -8($fp)
+mul $t0, $s0, 4
+mul $t1, $s0, 4
+addi $t2, $t1, 4000
+addu $t2, $t2, $v1
+lw $t3, ($t2)
+addi $t4, $t0, 0
+addu $t4, $t4, $v1
+sw $t3, ($t4)
+lw $s0, -8($fp)
+addi $t0, $s0, 1
+sw $t0, -8($fp)
+j LABEL42
+LABEL43:
+jr $ra

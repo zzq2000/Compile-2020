@@ -1,0 +1,280 @@
+move seed 19971231 
+move seed 19981013 
+move seed 1000000007 
+move staticvalue 0 
+move tmp 0 
+move i 0 
+move j 0 
+alloc 
+setlab LABEL9 
+slt TEMP_152 j 1000 
+beq TEMP_152 0 LABEL10 
+mult TEMP_153 j 4 
+array_write a TEMP_153 0 
+add TEMP_154 j 1 
+move j TEMP_154 
+j LABEL9 
+setlab LABEL10 
+ 
+callv myscanf TEMP_155 
+move n TEMP_155 
+ 
+callv myscanf TEMP_156 
+move staticvalue TEMP_156 
+setlab LABEL11 
+sgt TEMP_157 n 0 
+beq TEMP_157 0 LABEL12 
+sub TEMP_158 n 1 
+move n TEMP_158 
+ 
+callv rand TEMP_159 
+move z TEMP_159 
+divi TEMP_161 z 300000 
+mult TEMP_162 TEMP_161 300000 
+sub TEMP_160 z TEMP_162 
+move x TEMP_160 
+ 
+callv rand TEMP_163 
+move z TEMP_163 
+divi TEMP_165 z 2 
+mult TEMP_166 TEMP_165 2 
+sub TEMP_164 z TEMP_166 
+move y TEMP_164 
+ 
+parameter x 
+parameter y 
+callv set TEMP_167 
+j LABEL11 
+setlab LABEL12 
+setlab LABEL13 
+slt TEMP_168 i 1000 
+beq TEMP_168 0 LABEL14 
+mult TEMP_171 i 4 
+array_read TEMP_170 a TEMP_171 
+mult TEMP_174 i 4 
+array_read TEMP_173 a TEMP_174 
+divi TEMP_175 TEMP_173 100000 
+mult TEMP_176 TEMP_175 100000 
+sub TEMP_172 TEMP_170 TEMP_176 
+add TEMP_169 tmp TEMP_172 
+move tmp TEMP_169 
+divi TEMP_178 tmp 100000 
+mult TEMP_179 TEMP_178 100000 
+sub TEMP_177 tmp TEMP_179 
+move tmp TEMP_177 
+add TEMP_180 i 1 
+move i TEMP_180 
+j LABEL13 
+setlab LABEL14 
+ 
+parameter tmp 
+call 
+ 
+myscanf:
+alloc 
+read n 
+retv n 
+myprintf:
+alloc 
+print n 
+enter 
+ret 
+ret 
+set:
+move i 10 
+move v 0 
+alloc 
+mult TEMP_0 0 4 
+array_write x TEMP_0 1 
+mult TEMP_1 1 4 
+mult TEMP_3 0 4 
+array_read TEMP_2 x TEMP_3 
+mult TEMP_4 TEMP_2 2 
+array_write x TEMP_1 TEMP_4 
+mult TEMP_5 2 4 
+mult TEMP_7 1 4 
+array_read TEMP_6 x TEMP_7 
+mult TEMP_8 TEMP_6 2 
+array_write x TEMP_5 TEMP_8 
+mult TEMP_9 3 4 
+mult TEMP_11 2 4 
+array_read TEMP_10 x TEMP_11 
+mult TEMP_12 TEMP_10 2 
+array_write x TEMP_9 TEMP_12 
+mult TEMP_13 4 4 
+mult TEMP_15 3 4 
+array_read TEMP_14 x TEMP_15 
+mult TEMP_16 TEMP_14 2 
+array_write x TEMP_13 TEMP_16 
+mult TEMP_17 5 4 
+mult TEMP_19 4 4 
+array_read TEMP_18 x TEMP_19 
+mult TEMP_20 TEMP_18 2 
+array_write x TEMP_17 TEMP_20 
+mult TEMP_21 6 4 
+mult TEMP_23 5 4 
+array_read TEMP_22 x TEMP_23 
+mult TEMP_24 TEMP_22 2 
+array_write x TEMP_21 TEMP_24 
+mult TEMP_25 7 4 
+mult TEMP_27 6 4 
+array_read TEMP_26 x TEMP_27 
+mult TEMP_28 TEMP_26 2 
+array_write x TEMP_25 TEMP_28 
+mult TEMP_29 8 4 
+mult TEMP_31 7 4 
+array_read TEMP_30 x TEMP_31 
+mult TEMP_32 TEMP_30 2 
+array_write x TEMP_29 TEMP_32 
+mult TEMP_33 9 4 
+mult TEMP_35 8 4 
+array_read TEMP_34 x TEMP_35 
+mult TEMP_36 TEMP_34 2 
+array_write x TEMP_33 TEMP_36 
+mult TEMP_37 10 4 
+mult TEMP_39 9 4 
+array_read TEMP_38 x TEMP_39 
+mult TEMP_40 TEMP_38 2 
+array_write x TEMP_37 TEMP_40 
+setlab LABEL0 
+slt TEMP_41 i 30 
+beq TEMP_41 0 LABEL1 
+add TEMP_42 i 1 
+move i TEMP_42 
+mult TEMP_43 i 4 
+sub TEMP_45 i 1 
+mult TEMP_46 TEMP_45 4 
+array_read TEMP_44 x TEMP_46 
+mult TEMP_47 TEMP_44 2 
+array_write x TEMP_43 TEMP_47 
+j LABEL0 
+setlab LABEL1 
+divi TEMP_48 pos 30 
+sge TEMP_49 TEMP_48 1000 
+beq TEMP_49 0 LABEL2 
+retv 0 
+setlab LABEL2 
+divi TEMP_51 pos 30 
+mult TEMP_52 TEMP_51 4 
+array_read TEMP_50 a TEMP_52 
+divi TEMP_56 pos 30 
+mult TEMP_57 TEMP_56 30 
+sub TEMP_55 pos TEMP_57 
+mult TEMP_58 TEMP_55 4 
+array_read TEMP_54 x TEMP_58 
+divi TEMP_53 TEMP_50 TEMP_54 
+divi TEMP_61 pos 30 
+mult TEMP_62 TEMP_61 4 
+array_read TEMP_60 a TEMP_62 
+divi TEMP_66 pos 30 
+mult TEMP_67 TEMP_66 30 
+sub TEMP_65 pos TEMP_67 
+mult TEMP_68 TEMP_65 4 
+array_read TEMP_64 x TEMP_68 
+divi TEMP_63 TEMP_60 TEMP_64 
+divi TEMP_69 TEMP_63 2 
+mult TEMP_70 TEMP_69 2 
+sub TEMP_59 TEMP_53 TEMP_70 
+sne TEMP_71 TEMP_59 d 
+beq TEMP_71 0 LABEL3 
+divi TEMP_73 pos 30 
+mult TEMP_74 TEMP_73 4 
+array_read TEMP_72 a TEMP_74 
+divi TEMP_78 pos 30 
+mult TEMP_79 TEMP_78 30 
+sub TEMP_77 pos TEMP_79 
+mult TEMP_80 TEMP_77 4 
+array_read TEMP_76 x TEMP_80 
+divi TEMP_75 TEMP_72 TEMP_76 
+divi TEMP_83 pos 30 
+mult TEMP_84 TEMP_83 4 
+array_read TEMP_82 a TEMP_84 
+divi TEMP_88 pos 30 
+mult TEMP_89 TEMP_88 30 
+sub TEMP_87 pos TEMP_89 
+mult TEMP_90 TEMP_87 4 
+array_read TEMP_86 x TEMP_90 
+divi TEMP_85 TEMP_82 TEMP_86 
+divi TEMP_91 TEMP_85 2 
+mult TEMP_92 TEMP_91 2 
+sub TEMP_81 TEMP_75 TEMP_92 
+seq TEMP_93 TEMP_81 0 
+beq TEMP_93 0 LABEL4 
+seq TEMP_94 d 1 
+beq TEMP_94 0 LABEL5 
+divi TEMP_97 pos 30 
+mult TEMP_98 TEMP_97 30 
+sub TEMP_96 pos TEMP_98 
+mult TEMP_99 TEMP_96 4 
+array_read TEMP_95 x TEMP_99 
+move v TEMP_95 
+setlab LABEL5 
+setlab LABEL4 
+divi TEMP_101 pos 30 
+mult TEMP_102 TEMP_101 4 
+array_read TEMP_100 a TEMP_102 
+divi TEMP_106 pos 30 
+mult TEMP_107 TEMP_106 30 
+sub TEMP_105 pos TEMP_107 
+mult TEMP_108 TEMP_105 4 
+array_read TEMP_104 x TEMP_108 
+divi TEMP_103 TEMP_100 TEMP_104 
+divi TEMP_111 pos 30 
+mult TEMP_112 TEMP_111 4 
+array_read TEMP_110 a TEMP_112 
+divi TEMP_116 pos 30 
+mult TEMP_117 TEMP_116 30 
+sub TEMP_115 pos TEMP_117 
+mult TEMP_118 TEMP_115 4 
+array_read TEMP_114 x TEMP_118 
+divi TEMP_113 TEMP_110 TEMP_114 
+divi TEMP_119 TEMP_113 2 
+mult TEMP_120 TEMP_119 2 
+sub TEMP_109 TEMP_103 TEMP_120 
+seq TEMP_121 TEMP_109 1 
+beq TEMP_121 0 LABEL6 
+seq TEMP_122 d 0 
+beq TEMP_122 0 LABEL7 
+divi TEMP_126 pos 30 
+mult TEMP_127 TEMP_126 30 
+sub TEMP_125 pos TEMP_127 
+mult TEMP_128 TEMP_125 4 
+array_read TEMP_124 x TEMP_128 
+sub TEMP_123 v TEMP_124 
+move v TEMP_123 
+setlab LABEL7 
+setlab LABEL6 
+setlab LABEL3 
+divi TEMP_129 pos 30 
+mult TEMP_130 TEMP_129 4 
+divi TEMP_132 pos 30 
+mult TEMP_133 TEMP_132 4 
+array_read TEMP_131 a TEMP_133 
+add TEMP_134 TEMP_131 v 
+array_write a TEMP_130 TEMP_134 
+retv 0 
+rand:
+alloc 
+mult TEMP_137 0 4 
+array_read TEMP_136 seed TEMP_137 
+mult TEMP_135 staticvalue TEMP_136 
+mult TEMP_140 1 4 
+array_read TEMP_139 seed TEMP_140 
+add TEMP_138 TEMP_135 TEMP_139 
+move staticvalue TEMP_138 
+mult TEMP_144 2 4 
+array_read TEMP_143 seed TEMP_144 
+divi TEMP_142 staticvalue TEMP_143 
+mult TEMP_147 2 4 
+array_read TEMP_146 seed TEMP_147 
+mult TEMP_145 TEMP_142 TEMP_146 
+sub TEMP_141 staticvalue TEMP_145 
+move staticvalue TEMP_141 
+slt TEMP_148 staticvalue 0 
+beq TEMP_148 0 LABEL8 
+mult TEMP_150 2 4 
+array_read TEMP_149 seed TEMP_150 
+add TEMP_151 TEMP_149 staticvalue 
+move staticvalue TEMP_151 
+setlab LABEL8 
+retv staticvalue 
