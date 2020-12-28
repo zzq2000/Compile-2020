@@ -18,6 +18,7 @@ char keywords[][10] = { "const", "int", "char", "void", "main", "if", "else", "s
 
 int line = 1;
 int column = 0;
+int lineend = 0;
 char token[MAXL];
 int tokenlen = 0;
 Symbol symbol_;
@@ -32,7 +33,7 @@ void catToken(int c) {
 }
 
 int selectKey() {
-	char token_[128];
+	char* token_ = (char*)malloc(sizeof(char) * tokenlen + 4);
 	for (int i = 0; i < tokenlen; i++) {
 		token_[i] = tolower(token[i]);
 	}
@@ -53,9 +54,11 @@ int getchar_(FILE* inFile) {
 
 void getsym(FILE* inFile, int c) {
 	clearToken();
+	lineend = 0;
 	while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
 		if (c == '\n') {
 			line++;
+			lineend = 1;
 			column = 0;
 		}
 		c = getchar_(inFile);
@@ -85,15 +88,24 @@ void getsym(FILE* inFile, int c) {
 	}
 	else if (c == '\'') {
 		c = getchar_(inFile);
-		catToken(c);
-		c = getchar_(inFile);
+		if (c != '\'') {
+			catToken(c);
+			c = getchar_(inFile);
+		}
 		symbol_ = CHARCON;
 	}
 	else if (c == '\"') {
 		c = getchar_(inFile);
 		while (c != '\"') {
-			catToken(c);
-			c = getchar_(inFile);
+			if (c != '\\') {
+				catToken(c);
+				c = getchar_(inFile);
+			}
+			else {
+				catToken(c);
+				catToken('\\');
+				c = getchar_(inFile);
+			}
 		}
 		symbol_ = STRCON;
 	}
@@ -196,7 +208,7 @@ void getsym(FILE* inFile, int c) {
 		catToken(c);
 		symbol_ = RBRACE;
 	}
-	else error(line, column);
+	//else error(line, column);
 }
 
 SymTable getsym_(FILE* inFile) {
@@ -206,9 +218,14 @@ SymTable getsym_(FILE* inFile) {
 		getsym(inFile, c);
 		if (tokenlen != 0) {
 			symTable.symbol = symbol_;
-			symTable.value = (char *)malloc(sizeof(char) * tokenlen + 1);
+			symTable.value = (char *)malloc(sizeof(char) * tokenlen + 4);
 			if (symTable.value != NULL)
 				strcpy(symTable.value, token);
+			return symTable;
+		}
+		else if (tokenlen == 0 && (symbol_ == CHARCON || symbol_ == STRCON)) {
+			symTable.symbol = symbol_;
+			symTable.value = NULL;
 			return symTable;
 		}
 	}

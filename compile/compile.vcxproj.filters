@@ -24,6 +24,21 @@
     <ClInclude Include="src\error.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="src\idTable.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Intermediate.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\str.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\objectCode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\register.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\parser.cpp">
@@ -36,6 +51,21 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="src\Main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\idTable.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Intermediate.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\objectCode.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\str.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\register.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

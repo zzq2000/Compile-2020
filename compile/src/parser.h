@@ -1,6 +1,8 @@
 #ifndef PARSER
 #define PARSER
 #include "symTables.h"
+#include "Intermediate.h"
+#include "idTable.h"
 typedef enum {
 	PROGRAM = 0,
 	CONSTSTATE,
@@ -60,7 +62,7 @@ void conststate(gtNodePointer*);
 void intconstdef(gtNodePointer*);
 void charconstdef(gtNodePointer*);
 void integer(gtNodePointer*);
-void unsignedinteger(gtNodePointer*);
+//void unsignedinteger(gtNodePointer*);
 void varstate(gtNodePointer*);
 void vardef(gtNodePointer*);
 void vardefinit(gtNodePointer*);
@@ -71,7 +73,7 @@ void multoperator(gtNodePointer*);
 void functiondef(gtNodePointer*);
 void voidfunctiondef(gtNodePointer*);
 void statehead(gtNodePointer*);
-void paralist(gtNodePointer*);
+void paralist(gtNodePointer*, int);
 void mainfunction(gtNodePointer*);
 void comstatement(gtNodePointer*);
 void statementlist(gtNodePointer*);
@@ -83,17 +85,28 @@ void condition(gtNodePointer*);
 void relationoperator(gtNodePointer*);
 void functioncall(gtNodePointer*);
 void voidfunctioncall(gtNodePointer*);
-void valueparalist(gtNodePointer*);
+void valueparalist(gtNodePointer*, IdTable);
 void assignstatement(gtNodePointer*);
 void scan(gtNodePointer*);
 void print_(gtNodePointer*);
 void string_(gtNodePointer*);
 void switch_(gtNodePointer*);
-void caselist(gtNodePointer*);
-void case_(gtNodePointer*);
+void caselist(gtNodePointer*, Type, Operand, Operand);
+void case_(gtNodePointer*, Type, Operand, Operand);
 void default_(gtNodePointer*);
 void return_(gtNodePointer*);
 void exp(gtNodePointer*);
 void item(gtNodePointer*);
 void factor(gtNodePointer*);
+Operand expA(gtNodePointer*);
+Operand itemA(gtNodePointer*);
+Operand factorA(gtNodePointer*);
+Operand integerA(gtNodePointer* gtNodepp);
+Operand constA(gtNodePointer* gtNodepp);
+Operand arrayValueAtA(gtNodePointer*);
+void conditionA(gtNodePointer*, Operand);
+Operand unsignedintegerA(gtNodePointer*);
+Operand stepsizeA(gtNodePointer*);
+Operand functioncallA(gtNodePointer*);
+Type getExpType(gtNodePointer);
 #endif // 

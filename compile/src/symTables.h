@@ -54,6 +54,7 @@ extern int symNum;
 extern char sym[][10];
 extern char keywords[][10];
 extern int line;
+extern int lineend;
 void analysis(FILE* );
 SymTable getsym_(FILE* inFile);
 #endif // !SYMTABLES
