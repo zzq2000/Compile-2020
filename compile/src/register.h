@@ -30,7 +30,7 @@ void clearTempReg(int);
 void clearGlobalReg();
 void clearGlobalReg(int);
 void clearParaReg();
-void setNotValid(int);
+void setNotValid(Category, int);
 void changed(Operand);
 #endif // !REG
 

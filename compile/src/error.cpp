@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "error.h"
 FILE* errorFile = fopen("error.txt", "w");
+int Errors = 0;
 void error(int line, int column) {
 	printf("Something Wrong with Your Program at line %d, column %d!", line, column);
 	//exit(1);
@@ -11,4 +12,5 @@ void err(int line, char* s) {
 }
 void errorPro(int line, char c) {
 	if (errorFile!=NULL) fprintf(errorFile, "%d %c\n", line, c);
+	Errors++;
 }

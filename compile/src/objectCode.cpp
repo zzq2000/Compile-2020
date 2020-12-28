@@ -13,6 +13,14 @@ char** paraName = NULL;//ÔÚµ÷ÓÃº¯ÊýÊ±»á½«ÆäÉèÖÃÎªº¯ÊýµÄ²ÎÊý±í£¬ÔÚµ÷ÓÃ½áÊøÒÔºóÖÃ¿
 Operand paralist[10][32];//´¢´æ×÷Îª²ÎÊýµÄ²Ù×÷Êý£¬µ±·¢Éúº¯Êýµ÷ÓÃÊ±£¬ÔÚ±£´æÏÖ³¡½áÊøÒÔºó£¬½«²Ù×÷Êý·ÅÈë¼Ä´æÆ÷ÒÔ¼°Ñ¹½øÕ»ÖÐ
 int callParaNum[10] = {0,};
 int callNum = 0;
+
+int label4div = 0; //×¨ÃÅÎª³ý·¨Ê¹ÓÃµÄ±êÇ©
+
+int solidStack[10][8];
+int tempStack[10][10];
+Reg solidRegStack[10][8];
+Reg tempRegStack[10][10];
+
 void IC2OC(IC);
 int searchPara(Operand op) {
 	if (paraName != NULL) {
@@ -34,11 +42,11 @@ char* searchOp(Operand op) {
 		for (int i = 0; i < paraNum; i++) {
 			if (strcmp(paraName[i], op.name) == 0) {
 				if (i < 3) {
-					return paraRegName[i+1];
+					return paraRegName[i + 1];
 				}
 				else {
 					int t = setReg(op);
-					fprintf(OCfile, "lw %s, %d($fp)\n", globalRegName[t], 4*(i-2));//
+					fprintf(OCfile, "lw %s, %d($fp)\n", globalRegName[t], 4*(paraNum - i));//
 					return  globalRegName[t];
 				}
 			}
@@ -89,6 +97,7 @@ char* searchOp(Operand op) {
 					fprintf(OCfile, "lb %s, %d($fp)\n", globalRegName[result], op.addr);
 				}
 			}
+			globalReg[result].dirty = 0;
 		}
 		return globalRegName[result];
 	}
@@ -105,11 +114,23 @@ char* searchParaOp(Operand op) {
 		for (int i = 0; i < paraNum; i++) {
 			if (strcmp(paraName[i], op.name) == 0) {
 				if (i < 3) {
-					return paraRegName[i + 1];
+					if (paraReg[i + 1].dirty == 0) {
+						return paraRegName[i + 1];
+					}
+					else {	//º¯Êý¼Ä´æÆ÷ÎªÔàÎ»µ±ÇÒ½öµ±·¢ÉúÁËÇ¶Ì×µÄº¯Êýµ÷ÓÃÊ±
+						int temp = setReg();
+						int loc = 0;
+						for (int j = 0; j < callNum-1; j++) {
+							loc += callParaNum[j] > 3 ? 3 : callParaNum[j] + 1;
+						}
+						fprintf(OCfile, "lw %s, %d($sp)\n", tempRegName[temp], 4 * (loc + i));//±£´æµÄ²ÎÊýË³ÐòÊÇ
+						setNotValid(Category::temp, temp);
+						return tempRegName[temp];
+					}
 				}
 				else {
 					int temp = setReg(op);
-					fprintf(OCfile, "lw %s, %d($fp)\n", globalRegName[temp], 4 * (i - 2));//
+					fprintf(OCfile, "lw %s, %d($fp)\n", globalRegName[temp], 4 * (paraNum - i));//
 					clearGlobalReg(temp);
 					return  globalRegName[temp];
 				}
@@ -162,60 +183,29 @@ char* searchParaOp(Operand op) {
 					fprintf(OCfile, "lb %s, %d($fp)\n", globalRegName[result], op.addr);
 				}
 			}
+			globalReg[result].dirty = 0;
 		}
 		return globalRegName[result];
 	}
 	return NULL;
 }
 
-void addPara(Operand op) {
-	paralist[callNum - 1][callParaNum[callNum - 1]] = op;
-	callParaNum[callNum - 1]++;
+int pow2(int num) {
+	if ((num&(num-1)) != 0) {
+		return -1;
+	}
+	int mi = 0;
+	while (num != 1) {
+		num = num / 2;
+		mi++;
+	}
+	return mi;
 }
 
-void setPara() {
-	if (callParaNum[callNum - 1] <= 3) {
-		for (int i = 0; i < callParaNum[callNum - 1]; i++) {
-			if (paralist[callNum - 1][i].category == con) {
-				fprintf(OCfile, "addi $a%d, $0, %d\n", i + 1, paralist[callNum - 1][i].value);
-			}
-			else {
-				fprintf(OCfile, "move $a%d, %s\n", i + 1, searchParaOp(paralist[callNum - 1][i]));
-			}
-		}
-	}
-	else {
-		for (int i = 0; i < 3; i++) {
-			if (paralist[callNum - 1][i].category == con) {
-				fprintf(OCfile, "addi $a%d, $0, %d\n", i + 1, paralist[callNum - 1][i].value);
-			}
-			else {
-
-				fprintf(OCfile, "move $a%d, %s\n", i + 1, searchParaOp(paralist[callNum - 1][i]));
-			}
-		}
-		fprintf(OCfile, "subi $sp, $sp, %d\n", 4*(callParaNum[callNum - 1] -3));
-		for (int i = callParaNum[callNum - 1] - 1; i >= 3; i--) {
-			if (paralist[callNum - 1][i].category == con) {
-				int temp = setReg();
-				fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[temp], paralist[callNum - 1][i].value);
-				fprintf(OCfile, "sw %s, ($sp)\n", tempRegName[temp]);
-				clearTempReg(temp);
-			}
-			else {
-				fprintf(OCfile, "sw %s, ($sp)\n", searchParaOp(paralist[callNum - 1][i]));	//¸øÃ¿¸ö²ÎÊý·ÖÅäËÄ¸ö×Ö½ÚµÄ¿Õ¼ä
-			}
-		}
-	}
-}
-
-void releasePara() {
-	if (callParaNum[callNum - 1] <= 3) {
-		return;
-	}
-	else {
-		fprintf(OCfile, "addi $sp, $sp, %d\n", 4 * (callParaNum[callNum - 1] - 3));
-	}
+char* getLabel4div() {
+	char* s = (char*)malloc(10);
+	sprintf(s, "LABEL_DIV_%d", label4div++);
+	return s;
 }
 
 void outputOC() {
@@ -242,6 +232,7 @@ void outputOC() {
 		if (searchResult != -1) {
 			paraName = idTables[searchResult].paraName;
 			paraNum = idTables[searchResult].paraNum;
+			fprintf(OCfile, "sw $ra, ($fp)\n");
 			for (int j = 0; j < funclists[i].num; j++) {
 				IC2OC(funclists[i].lists[j]);
 			}
@@ -260,18 +251,12 @@ void IC2OC(IC ic) {
 		}
 		else if (ic.rs.category != con && ic.rt.category == con) {
 			fprintf(OCfile, "addi %s, %s, %d\n", tempRegName[setReg(ic.rd)], searchOp(ic.rs), ic.rt.value);
-			if (ic.rs.category == temp) {
-				setNotValid(searchReg(ic.rs));
-			}
+			setNotValid(ic.rs.category, searchReg(ic.rs));
 		}
 		else if (ic.rs.category != con && ic.rt.category != con) {
 			fprintf(OCfile, "addu %s, %s, %s\n", tempRegName[setReg(ic.rd)], searchOp(ic.rs), searchOp(ic.rt));
-			if (ic.rs.category == temp) {
-				setNotValid(searchReg(ic.rs));
-			}
-			if (ic.rt.category == temp) {
-				setNotValid(searchReg(ic.rs));
-			}
+			setNotValid(ic.rs.category, searchReg(ic.rs));
+			setNotValid(ic.rt.category, searchReg(ic.rt));
 		}
 	}
 	else if (ic.op == sub) {
@@ -280,29 +265,21 @@ void IC2OC(IC ic) {
 		}
 		else if (ic.rs.category != con && ic.rt.category == con) {
 			fprintf(OCfile, "subi %s, %s, %d\n", tempRegName[setReg(ic.rd)], searchOp(ic.rs), ic.rt.value);
-			if (ic.rs.category == temp) {
-				setNotValid(searchReg(ic.rs));
-			}
+			setNotValid(ic.rs.category, searchReg(ic.rs));
 		}
 		else if (ic.rs.category == con && ic.rt.category != con) {
 			int temp = setReg();
 			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[temp], ic.rs.value);
 			fprintf(OCfile, "sub %s, %s, %s\n", tempRegName[setReg(ic.rd)], tempRegName[temp], searchOp(ic.rt));
-			setNotValid(temp);
-			if (ic.rt.category == Category::temp) {
-				setNotValid(searchReg(ic.rt));
-			}
+			setNotValid(Category::temp, temp);
+			setNotValid(ic.rt.category, searchReg(ic.rt));
 		}
 		else if (ic.rs.category != con && ic.rt.category != con) {
 			char* tempRt = searchOp(ic.rt);
 			char* tempRs = searchOp(ic.rs);
 			fprintf(OCfile, "sub %s, %s, %s\n", tempRegName[setReg(ic.rd)], searchOp(ic.rs), searchOp(ic.rt));
-			if (ic.rs.category == temp) {
-				setNotValid(searchReg(ic.rs));
-			}
-			if (ic.rt.category == temp) {
-				setNotValid(searchReg(ic.rt));
-			}
+			setNotValid(ic.rs.category, searchReg(ic.rs));
+			setNotValid(ic.rt.category, searchReg(ic.rt));
 		}
 	}
 	else if (ic.op == mult) {
@@ -310,19 +287,48 @@ void IC2OC(IC ic) {
 			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[setReg(ic.rd)], ic.rs.value * ic.rt.value);
 		}
 		else if (ic.rs.category != con && ic.rt.category == con) {
-			fprintf(OCfile, "mul %s, %s, %d\n", tempRegName[setReg(ic.rd)], searchOp(ic.rs), ic.rt.value);
-			if (ic.rs.category == temp) {
-				setNotValid(searchReg(ic.rs));
+			int RdTempReg = setReg(ic.rd);
+			if (ic.rt.value == 0) {
+				fprintf(OCfile, "move %s $0\n", tempRegName[RdTempReg]);
+				setNotValid(ic.rs.category, searchReg(ic.rs));
+				return;
 			}
+			else if (ic.rt.value < 0) {
+				fprintf(OCfile, "negu %s %s\n", tempRegName[RdTempReg], searchOp(ic.rs));
+				ic.rt.value = -ic.rt.value;
+				if (ic.rt.value == 1) {
+					return;
+				}
+				else {
+					int pow = pow2(ic.rt.value);
+					if (pow != -1) {
+						fprintf(OCfile, "sll %s, %s, %d\n", tempRegName[RdTempReg], tempRegName[RdTempReg], pow);
+					}
+					else {
+						fprintf(OCfile, "mul %s, %s, %d\n", tempRegName[RdTempReg], tempRegName[RdTempReg], ic.rt.value);
+					}
+				}
+			}
+			else {
+				if (ic.rt.value == 1) {
+					fprintf(OCfile, "move %s %s\n", tempRegName[RdTempReg], searchOp(ic.rs));
+				}
+				else{
+					int pow = pow2(ic.rt.value);
+					if (pow != -1) {
+						fprintf(OCfile, "sll %s, %s, %d\n", tempRegName[RdTempReg], searchOp(ic.rs), pow);
+					}
+					else {
+						fprintf(OCfile, "mul %s, %s, %d\n", tempRegName[RdTempReg], searchOp(ic.rs), ic.rt.value);
+					}
+				}
+			}
+			setNotValid(ic.rs.category, searchReg(ic.rs));
 		}
 		else if (ic.rs.category != con && ic.rt.category != con) {
 			fprintf(OCfile, "mul %s, %s, %s\n", tempRegName[setReg(ic.rd)], searchOp(ic.rs), searchOp(ic.rt));
-			if (ic.rs.category == temp) {
-				setNotValid(searchReg(ic.rs));
-			}
-			if (ic.rt.category == temp) {
-				setNotValid(searchReg(ic.rt));
-			}
+			setNotValid(ic.rs.category, searchReg(ic.rs));
+			setNotValid(ic.rt.category, searchReg(ic.rt));
 		}
 	}
 	else if (ic.op == OP::divi) {
@@ -330,28 +336,87 @@ void IC2OC(IC ic) {
 			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[setReg(ic.rd)], ic.rs.value / ic.rt.value);
 		}
 		else if (ic.rs.category != con && ic.rt.category == con) {
-			fprintf(OCfile, "div %s, %s, %d\n", tempRegName[setReg(ic.rd)], searchOp(ic.rs), ic.rt.value);
-			if (ic.rs.category == temp) {
-				setNotValid(searchReg(ic.rs));
+			if (ic.rt.value == 1) {
+				fprintf(OCfile, "move %s %s\n", tempRegName[setReg(ic.rd)], searchOp(ic.rs));
+			}
+			else if (ic.rt.value == -1) {
+				fprintf(OCfile, "negu %s %s\n", tempRegName[setReg(ic.rd)], searchOp(ic.rs));
+			}
+			else if (ic.rt.value == 2) {
+				int RdTempReg = setReg(ic.rd);
+				char* RsRegName = searchOp(ic.rs);
+				fprintf(OCfile, "sra %s, %s, 31\n", tempRegName[RdTempReg], RsRegName);
+				fprintf(OCfile, "sub %s, %s, %s\n", tempRegName[RdTempReg], RsRegName, tempRegName[RdTempReg]);
+				fprintf(OCfile, "sra %s, %s, 1\n", tempRegName[RdTempReg], tempRegName[RdTempReg]);
+			}
+			else if (ic.rt.value == -2) {
+				int RdTempReg = setReg(ic.rd);
+				char* RsRegName = searchOp(ic.rs);
+				fprintf(OCfile, "negu %s %s\n", tempRegName[RdTempReg], RsRegName);
+				fprintf(OCfile, "sra %s, %s, 31\n", tempRegName[RdTempReg], tempRegName[RdTempReg]);
+				fprintf(OCfile, "sub %s, %s, %s\n", tempRegName[RdTempReg], tempRegName[RdTempReg], tempRegName[RdTempReg]);
+				fprintf(OCfile, "sra %s, %s, 1\n", tempRegName[RdTempReg], tempRegName[RdTempReg]);
+			}
+			else {
+				int RdTempReg = setReg(ic.rd);
+				if (ic.rt.value > 0) {
+					int pow = pow2(ic.rt.value);
+					if (pow != -1) {
+						char* RsRegName = searchOp(ic.rs);
+						char* label1 = getLabel4div();
+						char* label2 = getLabel4div();
+						fprintf(OCfile, "bge %s, $0, %s\n", RsRegName, label1);
+						fprintf(OCfile, "negu %s, %s\n", tempRegName[RdTempReg], RsRegName);
+						fprintf(OCfile, "sra %s, %s, %d\n", tempRegName[RdTempReg], tempRegName[RdTempReg], pow);
+						fprintf(OCfile, "negu %s, %s\n", tempRegName[RdTempReg], tempRegName[RdTempReg]);
+						fprintf(OCfile, "j %s\n", label2);
+						fprintf(OCfile, "%s:\n", label1);
+						fprintf(OCfile, "sra %s, %s, %d\n", tempRegName[RdTempReg], RsRegName, pow);
+						fprintf(OCfile, "%s:\n", label2);
+					}
+					else {
+						fprintf(OCfile, "div %s, %s, %d\n", tempRegName[RdTempReg], searchOp(ic.rs), ic.rt.value);
+						setNotValid(ic.rs.category, searchReg(ic.rs));
+					}
+				}
+				else {
+					int pow = pow2(-ic.rt.value);
+					if (pow != -1) {
+						char* RsRegName = searchOp(ic.rs);
+						char* label1 = getLabel4div();
+						char* label2 = getLabel4div();
+						fprintf(OCfile, "ble %s, $0, %s\n", RsRegName, label1);
+						fprintf(OCfile, "negu %s, %s\n", tempRegName[RdTempReg], RsRegName);
+						fprintf(OCfile, "sra %s, %s, %d\n", tempRegName[RdTempReg], tempRegName[RdTempReg], pow);
+						fprintf(OCfile, "j %s\n", label2);
+						fprintf(OCfile, "%s:\n", label1);
+						fprintf(OCfile, "negu %s, %s\n", tempRegName[RdTempReg], RsRegName);
+						fprintf(OCfile, "sra %s, %s, %d\n", tempRegName[RdTempReg], tempRegName[RdTempReg], pow);
+						fprintf(OCfile, "%s:\n", label2);
+					}
+					else {
+						fprintf(OCfile, "div %s, %s, %d\n", tempRegName[RdTempReg], searchOp(ic.rs), ic.rt.value);
+						setNotValid(ic.rs.category, searchReg(ic.rs));
+					}
+				}
 			}
 		}
 		else if (ic.rs.category == con && ic.rt.category != con) {
-			int temp = setReg();
-			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[temp], ic.rs.value);
-			fprintf(OCfile, "div %s, %s, %s\n", tempRegName[setReg(ic.rd)], tempRegName[temp], searchOp(ic.rt));
-			setNotValid(temp);
-			if (ic.rt.category == Category::temp) {
-				setNotValid(searchReg(ic.rt));
+			if (ic.rs.value == 0) {
+				fprintf(OCfile, "move %s, $0\n", tempRegName[setReg(ic.rd)]);
+			}
+			else {
+				int temp = setReg();
+				fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[temp], ic.rs.value);
+				fprintf(OCfile, "div %s, %s, %s\n", tempRegName[setReg(ic.rd)], tempRegName[temp], searchOp(ic.rt));
+				setNotValid(Category::temp, temp);
+				setNotValid(ic.rt.category, searchReg(ic.rt));
 			}
 		}
 		else if (ic.rs.category != con && ic.rt.category != con) {
 			fprintf(OCfile, "div %s, %s, %s\n", tempRegName[setReg(ic.rd)], searchOp(ic.rs), searchOp(ic.rt));
-			if (ic.rs.category == temp) {
-				setNotValid(searchReg(ic.rs));
-			}
-			if (ic.rt.category == temp) {
-				setNotValid(searchReg(ic.rt));
-			}
+			setNotValid(ic.rs.category, searchReg(ic.rs));
+			setNotValid(ic.rt.category, searchReg(ic.rt));
 		}
 	}
 	else if (ic.op == read) {
@@ -406,7 +471,6 @@ void IC2OC(IC ic) {
 			fprintf(OCfile, "syscall\n");
 		}
 		clearTempReg();
-		clearGlobalReg();
 	}
 	else if (ic.op == OP::move) {
 		int para = searchPara(ic.rd);
@@ -465,7 +529,6 @@ void IC2OC(IC ic) {
 		}
 		changed(ic.rd);
 		clearTempReg();
-		clearGlobalReg();
 	}
 	else if (ic.op == array_read) {
 		//rd = rs[rt]
@@ -509,10 +572,8 @@ void IC2OC(IC ic) {
 					fprintf(OCfile, "lb %s, (%s)\n", tempRegName[setReg(ic.rd)], tempRegName[temp]);
 				}
 			}
-			if (ic.rt.category == temp) {
-				setNotValid(searchReg(ic.rt));
-			}
-			setNotValid(temp);
+			setNotValid(ic.rs.category, searchReg(ic.rt));
+			setNotValid(Category::temp, temp);
 		}
 		changed(ic.rd);
 	}
@@ -567,187 +628,101 @@ void IC2OC(IC ic) {
 			}
 		}
 		clearTempReg();
-		clearGlobalReg();
 	}
 	else if (ic.op == enter) {
 		fprintf(OCfile, "li $v0, 11\nli $a0, 10\nsyscall\n");
 	}
-	else if (ic.op == slt) {
-		if (ic.rs.category == con && ic.rt.category == con) {
-			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[setReg(ic.rd)], ic.rs.value < ic.rt.value ? 1:0);
+	else if (ic.op == bge) {
+		if (ic.rd.category == con && ic.rs.category == con) {
+			if (ic.rd.value >= ic.rs.value)
+				fprintf(OCfile, "j %s\n", ic.rt.name);
 		}
-		else if(ic.rs.category != con && ic.rt.category == con) {
-			int temp = setReg();
-			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[temp], ic.rt.value);
-			fprintf(OCfile, "slt %s, %s, %s\n", tempRegName[setReg(ic.rd)], searchOp(ic.rs), tempRegName[temp]);
-			setNotValid(temp);
-			if (ic.rs.category == temp) {
-				setNotValid(searchReg(ic.rs));
-			}
+		else if(ic.rd.category != con && ic.rs.category == con) {
+			fprintf(OCfile, "bge %s, %d, %s\n", searchOp(ic.rd), ic.rs.value, ic.rt.name);
+			setNotValid(ic.rd.category, searchReg(ic.rd));
 		}
-		else if (ic.rs.category == con && ic.rt.category != con) {
+		else if (ic.rd.category == con && ic.rs.category != con) {
 			int temp = setReg();
-			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[temp], ic.rs.value);
-			fprintf(OCfile, "slt %s, %s, %s\n", tempRegName[setReg(ic.rd)], tempRegName[temp], searchOp(ic.rt));
-			setNotValid(temp);
-			if (ic.rt.category == Category::temp) {
-				setNotValid(searchReg(ic.rt));
-			}
+			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[temp], ic.rd.value);
+			fprintf(OCfile, "bge %s, %s, %s\n", tempRegName[temp], searchOp(ic.rs), ic.rt.name);
+			setNotValid(Category::temp, temp);
+			setNotValid(ic.rs.category, searchReg(ic.rs));
 		}
 		else {
-			fprintf(OCfile, "slt %s, %s, %s\n", tempRegName[setReg(ic.rd)], searchOp(ic.rs), searchOp(ic.rt));
-			if (ic.rs.category == temp) {
-				setNotValid(searchReg(ic.rs));
-			}
-			if (ic.rt.category == Category::temp) {
-				setNotValid(searchReg(ic.rt));
-			}
+			fprintf(OCfile, "bge %s, %s, %s\n", searchOp(ic.rd), searchOp(ic.rs), ic.rt.name);
+			setNotValid(ic.rd.category, searchReg(ic.rd));
+			setNotValid(ic.rs.category, searchReg(ic.rs));
 		}
+		clearTempReg();
 	}
-	else if (ic.op == sle) {
-		if (ic.rs.category == con && ic.rt.category == con) {
-			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[setReg(ic.rd)], ic.rs.value <= ic.rt.value ? 1 : 0);
+	else if (ic.op == bgt) {
+		if (ic.rd.category == con && ic.rs.category == con) {
+			if (ic.rd.value > ic.rs.value)
+				fprintf(OCfile, "j %s\n", ic.rt.name);
 		}
-		else if (ic.rs.category != con && ic.rt.category == con) {
-			fprintf(OCfile, "sle %s, %s, %d\n", tempRegName[setReg(ic.rd)], searchOp(ic.rs), ic.rt.value);
-			if (ic.rs.category == temp) {
-				setNotValid(searchReg(ic.rs));
-			}
+		else if (ic.rd.category != con && ic.rs.category == con) {
+			fprintf(OCfile, "bgt %s, %d, %s\n", searchOp(ic.rd), ic.rs.value, ic.rt.name);
+			setNotValid(ic.rd.category, searchReg(ic.rd));
 		}
-		else if (ic.rs.category == con && ic.rt.category != con) {
+		else if (ic.rd.category == con && ic.rs.category != con) {
 			int temp = setReg();
-			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[temp], ic.rs.value);
-			fprintf(OCfile, "sle %s, %s, %s\n", tempRegName[setReg(ic.rd)], tempRegName[temp], searchOp(ic.rt));
-			setNotValid(temp);
-			if (ic.rt.category == Category::temp) {
-				setNotValid(searchReg(ic.rt));
-			}
+			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[temp], ic.rd.value);
+			fprintf(OCfile, "bgt %s, %s, %s\n", tempRegName[temp], searchOp(ic.rs), ic.rt.name);
+			setNotValid(Category::temp, temp);
+			setNotValid(ic.rs.category, searchReg(ic.rs));
 		}
 		else {
-			fprintf(OCfile, "sle %s, %s, %s\n", tempRegName[setReg(ic.rd)], searchOp(ic.rs), searchOp(ic.rt));
-			if (ic.rs.category == temp) {
-				setNotValid(searchReg(ic.rs));
-			}
-			if (ic.rt.category == Category::temp) {
-				setNotValid(searchReg(ic.rt));
-			}
+			fprintf(OCfile, "bgt %s, %s, %s\n", searchOp(ic.rd), searchOp(ic.rs), ic.rt.name);
+			setNotValid(ic.rd.category, searchReg(ic.rd));
+			setNotValid(ic.rs.category, searchReg(ic.rs));
 		}
+		clearTempReg();
 	}
-	else if (ic.op == sgt) {
-		if (ic.rs.category == con && ic.rt.category == con) {
-			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[setReg(ic.rd)], ic.rs.value > ic.rt.value ? 1 : 0);
+	else if (ic.op == ble) {
+		if (ic.rd.category == con && ic.rs.category == con) {
+			if (ic.rd.value <= ic.rs.value)
+				fprintf(OCfile, "j %s\n", ic.rt.name);
 		}
-		else if (ic.rs.category != con && ic.rt.category == con) {
-			fprintf(OCfile, "sgt %s, %s, %d\n", tempRegName[setReg(ic.rd)], searchOp(ic.rs), ic.rt.value);
-			if (ic.rs.category == temp) {
-				setNotValid(searchReg(ic.rs));
-			}
+		else if (ic.rd.category != con && ic.rs.category == con) {
+			fprintf(OCfile, "ble %s, %d, %s\n", searchOp(ic.rd), ic.rs.value, ic.rt.name);
+			setNotValid(ic.rd.category, searchReg(ic.rd));
 		}
-		else if (ic.rs.category == con && ic.rt.category != con) {
+		else if (ic.rd.category == con && ic.rs.category != con) {
 			int temp = setReg();
-			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[temp], ic.rs.value);
-			fprintf(OCfile, "sgt %s, %s, %s\n", tempRegName[setReg(ic.rd)], tempRegName[temp], searchOp(ic.rt));
-			setNotValid(temp);
-			if (ic.rt.category == Category::temp) {
-				setNotValid(searchReg(ic.rt));
-			}
+			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[temp], ic.rd.value);
+			fprintf(OCfile, "ble %s, %s, %s\n", tempRegName[temp], searchOp(ic.rs), ic.rt.name);
+			setNotValid(Category::temp, temp);
+			setNotValid(ic.rs.category, searchReg(ic.rs));
 		}
 		else {
-			fprintf(OCfile, "sgt %s, %s, %s\n", tempRegName[setReg(ic.rd)], searchOp(ic.rs), searchOp(ic.rt));
-			if (ic.rs.category == temp) {
-				setNotValid(searchReg(ic.rs));
-			}
-			if (ic.rt.category == Category::temp) {
-				setNotValid(searchReg(ic.rt));
-			}
+			fprintf(OCfile, "ble %s, %s, %s\n", searchOp(ic.rd), searchOp(ic.rs), ic.rt.name);
+			setNotValid(ic.rd.category, searchReg(ic.rd));
+			setNotValid(ic.rs.category, searchReg(ic.rs));
 		}
+		clearTempReg();
 	}
-	else if (ic.op == sge) {
-		if (ic.rs.category == con && ic.rt.category == con) {
-			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[setReg(ic.rd)], ic.rs.value >= ic.rt.value ? 1 : 0);
+	else if (ic.op == blt) {
+		if (ic.rd.category == con && ic.rs.category == con) {
+			if (ic.rd.value < ic.rs.value)
+				fprintf(OCfile, "j %s\n", ic.rt.name);
 		}
-		else if (ic.rs.category != con && ic.rt.category == con) {
-			fprintf(OCfile, "sge %s, %s, %d\n", tempRegName[setReg(ic.rd)], searchOp(ic.rs), ic.rt.value);
-			if (ic.rs.category == temp) {
-				setNotValid(searchReg(ic.rs));
-			}
+		else if (ic.rd.category != con && ic.rs.category == con) {
+			fprintf(OCfile, "blt %s, %d, %s\n", searchOp(ic.rd), ic.rs.value, ic.rt.name);
+			setNotValid(ic.rd.category, searchReg(ic.rd));
 		}
-		else if (ic.rs.category == con && ic.rt.category != con) {
+		else if (ic.rd.category == con && ic.rs.category != con) {
 			int temp = setReg();
-			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[temp], ic.rs.value);
-			fprintf(OCfile, "sge %s, %s, %s\n", tempRegName[setReg(ic.rd)], tempRegName[temp], searchOp(ic.rt));
-			setNotValid(temp);
-			if (ic.rt.category == Category::temp) {
-				setNotValid(searchReg(ic.rt));
-			}
+			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[temp], ic.rd.value);
+			fprintf(OCfile, "blt %s, %s, %s\n", tempRegName[temp], searchOp(ic.rs), ic.rt.name);
+			setNotValid(Category::temp, temp);
+			setNotValid(ic.rs.category, searchReg(ic.rs));
 		}
 		else {
-			fprintf(OCfile, "sge %s, %s, %s\n", tempRegName[setReg(ic.rd)], searchOp(ic.rs), searchOp(ic.rt));
-			if (ic.rs.category == temp) {
-				setNotValid(searchReg(ic.rs));
-			}
-			if (ic.rt.category == Category::temp) {
-				setNotValid(searchReg(ic.rt));
-			}
+			fprintf(OCfile, "blt %s, %s, %s\n", searchOp(ic.rd), searchOp(ic.rs), ic.rt.name);
+			setNotValid(ic.rd.category, searchReg(ic.rd));
+			setNotValid(ic.rs.category, searchReg(ic.rs));
 		}
-	}
-	else if (ic.op == sne) {
-		if (ic.rs.category == con && ic.rt.category == con) {
-			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[setReg(ic.rd)], ic.rs.value != ic.rt.value ? 1 : 0);
-		}
-		else if (ic.rs.category != con && ic.rt.category == con) {
-			fprintf(OCfile, "sne %s, %s, %d\n", tempRegName[setReg(ic.rd)], searchOp(ic.rs), ic.rt.value);
-			if (ic.rs.category == temp) {
-				setNotValid(searchReg(ic.rs));
-			}
-		}
-		else if (ic.rs.category == con && ic.rt.category != con) {
-			int temp = setReg();
-			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[temp], ic.rs.value);
-			fprintf(OCfile, "sne %s, %s, %s\n", tempRegName[setReg(ic.rd)], tempRegName[temp], searchOp(ic.rt));
-			setNotValid(temp);
-			if (ic.rt.category == Category::temp) {
-				setNotValid(searchReg(ic.rt));
-			}
-		}
-		else {
-			fprintf(OCfile, "sne %s, %s, %s\n", tempRegName[setReg(ic.rd)], searchOp(ic.rs), searchOp(ic.rt));
-			if (ic.rs.category == temp) {
-				setNotValid(searchReg(ic.rs));
-			}
-			if (ic.rt.category == Category::temp) {
-				setNotValid(searchReg(ic.rt));
-			}
-		}
-	}
-	else if (ic.op == seq) {
-		if (ic.rs.category == con && ic.rt.category == con) {
-			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[setReg(ic.rd)], ic.rs.value == ic.rt.value ? 1 : 0);
-		}
-		else if (ic.rs.category != con && ic.rt.category == con) {
-			fprintf(OCfile, "seq %s, %s, %d\n", tempRegName[setReg(ic.rd)], searchOp(ic.rs), ic.rt.value);
-			if (ic.rs.category == temp) {
-				setNotValid(searchReg(ic.rs));
-			}
-		}
-		else if (ic.rs.category == con && ic.rt.category != con) {
-			int temp = setReg();
-			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[temp], ic.rs.value);
-			fprintf(OCfile, "seq %s, %s, %s\n", tempRegName[setReg(ic.rd)], tempRegName[temp], searchOp(ic.rt));
-			setNotValid(temp);
-			if (ic.rt.category == Category::temp) {
-				setNotValid(searchReg(ic.rt));
-			}
-		}
-		else {
-			fprintf(OCfile, "seq %s, %s, %s\n", tempRegName[setReg(ic.rd)], searchOp(ic.rs), searchOp(ic.rt));
-			if (ic.rs.category == temp) {
-				setNotValid(searchReg(ic.rs));
-			}
-			if (ic.rt.category == Category::temp) {
-				setNotValid(searchReg(ic.rt));
-			}
-		}
+		clearTempReg();
 	}
 	else if (ic.op == setlab) {
 		for (int i = 0; i < globalRegNum; i++) {
@@ -782,24 +757,51 @@ void IC2OC(IC ic) {
 		clearGlobalReg();
 		fprintf(OCfile, "%s:\n", ic.rd.name);
 	}
-	else if (ic.op == beq) {//Ä¿Ç°µÚ¶þ¸ö²Ù×÷Êý¾ùÎª³£Êý0
-		if (ic.rs.category == con && ic.rs.value == 0) {
-			fprintf(OCfile, "beq %s, $0, %s\n", searchOp(ic.rd), ic.rt.name);
+	else if (ic.op == beq) {
+		if (ic.rd.category == con && ic.rs.category == con) {
+			if (ic.rd.value == ic.rs.value)
+				fprintf(OCfile, "j %s\n", ic.rt.name);
+		}
+		else if (ic.rd.category != con && ic.rs.category == con) {
+			fprintf(OCfile, "beq %s, %d, %s\n", searchOp(ic.rd), ic.rs.value, ic.rt.name);
+			setNotValid(ic.rd.category, searchReg(ic.rd));
+		}
+		else if (ic.rd.category == con && ic.rs.category != con) {
+			int temp = setReg();
+			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[temp], ic.rd.value);
+			fprintf(OCfile, "beq %s, %s, %s\n", tempRegName[temp], searchOp(ic.rs), ic.rt.name);
+			setNotValid(Category::temp, temp);
+			setNotValid(ic.rs.category, searchReg(ic.rs));
 		}
 		else {
 			fprintf(OCfile, "beq %s, %s, %s\n", searchOp(ic.rd), searchOp(ic.rs), ic.rt.name);
+			setNotValid(ic.rd.category, searchReg(ic.rd));
+			setNotValid(ic.rs.category, searchReg(ic.rs));
 		}
 		clearTempReg();
-		clearGlobalReg();
 	}
-	else if (ic.op == bne) {//Ä¿Ç°Ö»ÓÃÓÚswitchÓï¾ä£¬Òò´Ë²»Çå¼Ä´æÆ÷³Ø, µ«ÊÇ±ðÈË»áÇå£¬Òò´ËÐèÒª½«switchµÄÅÐ¶Ï±í´ïÊ½¸³Öµ¸øÒ»¸ö±äÁ¿
-		if (ic.rs.category == con) {
-			char* temp = tempRegName[setReg()];
-			fprintf(OCfile, "addi %s, $0, %d\n", temp, ic.rs.value);
-			fprintf(OCfile, "bne %s, %s, %s\n", searchOp(ic.rd), temp, ic.rt.name);
+	else if (ic.op == bne) {
+		if (ic.rd.category == con && ic.rs.category == con) {
+			if (ic.rd.value != ic.rs.value)
+				fprintf(OCfile, "j %s\n", ic.rt.name);
+		}
+		else if (ic.rd.category != con && ic.rs.category == con) {
+			fprintf(OCfile, "bne %s, %d, %s\n", searchOp(ic.rd), ic.rs.value, ic.rt.name);
+			setNotValid(ic.rd.category, searchReg(ic.rd));
+		}
+		else if (ic.rd.category == con && ic.rs.category != con) {
+			int temp = setReg();
+			fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[temp], ic.rd.value);
+			fprintf(OCfile, "bne %s, %s, %s\n", tempRegName[temp], searchOp(ic.rs), ic.rt.name);
+			setNotValid(Category::temp, temp);
+			setNotValid(ic.rs.category, searchReg(ic.rs));
+		}
+		else {
+			fprintf(OCfile, "bne %s, %s, %s\n", searchOp(ic.rd), searchOp(ic.rs), ic.rt.name);
+			setNotValid(ic.rd.category, searchReg(ic.rd));
+			setNotValid(ic.rs.category, searchReg(ic.rs));
 		}
 		clearTempReg();
-		clearGlobalReg();
 	}
 	else if (ic.op == j) {
 		fprintf(OCfile, "j %s\n", ic.rd.name);
@@ -836,9 +838,9 @@ void IC2OC(IC ic) {
 		clearGlobalReg();
 	}
 	else if (ic.op == ret) {
+		fprintf(OCfile, "lw $ra, ($fp)\n");
 		fprintf(OCfile, "jr $ra\n");
 		clearTempReg();
-		clearGlobalReg();
 	}
 	else if (ic.op == retv) {
 		if (ic.rd.category == con) {
@@ -847,173 +849,200 @@ void IC2OC(IC ic) {
 		else {
 			fprintf(OCfile, "move $v0, %s\n", searchOp(ic.rd));
 		}
+		fprintf(OCfile, "lw $ra, ($fp)\n");
 		fprintf(OCfile, "jr $ra\n");
 		clearTempReg();
-		clearGlobalReg();
 	}
 	else if (ic.op == call) {
-		//µ÷ÓÃÇ°±£»¤¼Ä´æÆ÷solid
-		if (globalRegNum != 0) {
-			fprintf(OCfile, "subi $sp, $sp, %d\n", 4 * globalRegNum);
-		}
-		for (int k = 0; k < globalRegNum; k++) {
-			fprintf(OCfile, "sw %s, %d($sp)\n", globalRegName[globalReg[k].id], 4 * k);
-		}
-		//µ÷ÓÃÇ°±£»¤¼Ä´æÆ÷temp
-		if (tempRegNum != 0) {
-			fprintf(OCfile, "subi $sp, $sp, %d\n", 4 * tempRegNum);
-		}
-		for (int i = 0; i < tempRegNum; i++) {
-			fprintf(OCfile, "sw %s, %d($sp)\n", tempRegName[tempReg[i].id], 4 * i);
-		}
-		if (paraName != NULL) {
-			//Èç¹ûµ÷ÓÃÕßÊÇº¯ÊýÐèÒª±£´æ²ÎÊý¼Ä´æÆ÷ÒÔ¼°·µ»ØÎ»ÖÃ$ra
-			if (paraNum > 0 && paraNum < 3) {
-				fprintf(OCfile, "subi $sp, $sp, %d\n", 4 * paraNum);
-				for (int i = 0; i < callParaNum[callNum - 1]; i++) {
-					fprintf(OCfile, "sw %s, %d($sp)\n", paraRegName[i + 1], 4 * i);
-				}
-			}
-			else if (paraNum > 3) {
-				fprintf(OCfile, "subi $sp, $sp, %d\n", 4 * 3);
-				for (int i = 0; i < 3; i++) {
-					fprintf(OCfile, "sw %s, %d($sp)\n", paraRegName[i + 1], 4 * i);
-				}
-			}
-			fprintf(OCfile, "subi $sp, $sp, 4\n");
-			fprintf(OCfile, "sw $ra, ($sp)\n");
-		}
-
-
-		//µ÷ÓÃÇ°±£´æÕ»¶¥$fp
-		fprintf(OCfile, "subi $sp, $sp, 4\n");
-		fprintf(OCfile, "sw $fp, ($sp)\n");
-		setPara();
+		clearGlobalReg();//Çå³ý²ÎÊýÉèÖÃ½×¶ÎÊ¹ÓÃµ½µÄÈ«¾Ö¼Ä´æÆ÷
 		fprintf(OCfile, "la $fp, -4($sp)\n");	//ÉèÖÃÐÂµÄÕ»Ö¡
 		fprintf(OCfile, "jal %s\n", ic.rd.name);
 		fprintf(OCfile, "la $sp, 4($fp)\n");	//»Ö¸´Õ»Ö¡
-		releasePara();
-		//»Ö¸´Õ»¶¥$fp
-		fprintf(OCfile, "lw $fp, ($sp)\n");
-		fprintf(OCfile, "addi $sp, $sp, 4\n");
-		if (paraName != NULL) {
-			//µ÷ÓÃ½áÊøºóÈç¹ûµ÷ÓÃÕßÊÇº¯Êý»Ö¸´·µ»ØÎ»ÖÃ$ra
-			fprintf(OCfile, "lw $ra, ($sp)\n");
-			fprintf(OCfile, "addi $sp, $sp, 4\n");
+		//ÊÍ·Å²ÎÊý
+		if (callParaNum[callNum - 1] > 3)
+			fprintf(OCfile, "addi $sp, $sp, %d\n", 4 * (callParaNum[callNum - 1] - 3));
+		if (paraNum != 0 && callNum == 1) {
 			//»Ö¸´²ÎÊý¼Ä´æÆ÷
 			if (paraNum > 0 && paraNum < 3) {
-				for (int i = 0; i < callParaNum[callNum - 1]; i++) {
+				for (int i = 0; i < paraNum; i++) {
 					fprintf(OCfile, "lw %s, %d($sp)\n", paraRegName[i + 1], 4 * i);
+					paraReg[i + 1].dirty = 0;
 				}
 				fprintf(OCfile, "addi $sp, $sp, %d\n", 4 * paraNum);
 			}
-			else if (paraNum > 3) {
+			else if (paraNum >= 3) {
+				for (int i = 0; i < 3; i++) {
+					fprintf(OCfile, "lw %s, %d($sp)\n", paraRegName[i + 1], 4 * i);
+					paraReg[i + 1].dirty = 0;
+				}
+				fprintf(OCfile, "addi $sp, $sp, %d\n", 4 * 3);
+			}
+		}
+		else if (callNum > 1) {
+			if (callParaNum[callNum - 2] > 0 && callParaNum[callNum - 2] < 3) {
+				for (int i = 0; i < callParaNum[callNum - 2]; i++) {
+					fprintf(OCfile, "lw %s, %d($sp)\n", paraRegName[i + 1], 4 * i);
+				}
+				fprintf(OCfile, "addi $sp, $sp, %d\n", 4 * callParaNum[callNum - 2]);
+			}
+			else if (callParaNum[callNum - 2] >= 3) {
 				for (int i = 0; i < 3; i++) {
 					fprintf(OCfile, "lw %s, %d($sp)\n", paraRegName[i + 1], 4 * i);
 				}
 				fprintf(OCfile, "addi $sp, $sp, %d\n", 4 * 3);
 			}
 		}
+		//»Ö¸´Õ»¶¥$fp
+		fprintf(OCfile, "lw $fp, ($sp)\n");
+		fprintf(OCfile, "addi $sp, $sp, 4\n");
 		//»Ö¸´temp
-		for (int i = 0; i < tempRegNum; i++) {
-			fprintf(OCfile, "lw %s, %d($sp)\n", tempRegName[tempReg[i].id], 4 * i);
+		int tempNum = 0;
+		for (int i = 0; i < 10; i++) {
+			if (tempStack[callNum - 1][i] == 1) {
+				tempNum++;
+			}
 		}
-		if (tempRegNum != 0)
-			fprintf(OCfile, "addi $sp, $sp, %d\n", 4 * tempRegNum);
+		if (tempNum != 0) {
+			int count = 0;
+			for (int i = 0; i < 10; i++) {
+				if (tempStack[callNum - 1][i] == 1) {
+					fprintf(OCfile, "lw %s, %d($sp)\n", tempRegName[tempRegStack[callNum - 1][i].id], 4 * count++);
+					tempReg[i] = tempRegStack[callNum - 1][i];
+					tempRegNum = i + 1;
+				}
+			}
+			fprintf(OCfile, "addi $sp, $sp, %d\n", 4 * tempNum);
+		}
 		//»Ö¸´solid
-		for (int i = 0; i < globalRegNum; i++) {
-			fprintf(OCfile, "lw %s, %d($sp)\n", globalRegName[globalReg[i].id], 4 * i);
+		int solidNum = 0;
+		for (int i = 0; i < 8; i++) {
+			if (solidStack[callNum - 1][i] == 1) {
+				solidNum++;
+			}
 		}
-		if (globalRegNum != 0)
-			fprintf(OCfile, "addi $sp, $sp, %d\n", 4 * globalRegNum);
+		if (solidNum != 0) {
+			int count = 0;
+			for (int i = 0; i < 8; i++) {
+				if (solidStack[callNum - 1][i] == 1) {
+					fprintf(OCfile, "lw %s, %d($sp)\n", globalRegName[solidRegStack[callNum - 1][i].id], 4 * count++);
+					globalReg[i] = solidRegStack[callNum - 1][i];
+					globalRegNum = i + 1;
+				}
+			}
+			fprintf(OCfile, "addi $sp, $sp, %d\n", 4 * solidNum);
+		}
 		callParaNum[callNum - 1] = 0;
 		callNum--;
-		}
+	}
 	else if (ic.op == callv) {
-		//µ÷ÓÃÇ°±£»¤¼Ä´æÆ÷solid
-		if (globalRegNum != 0) {
-			fprintf(OCfile, "subi $sp, $sp, %d\n", 4 * globalRegNum);
-		}
-		for (int k = 0; k < globalRegNum; k++) {
-			fprintf(OCfile, "sw %s, %d($sp)\n", globalRegName[globalReg[k].id], 4 * k);
-		}
-		//µ÷ÓÃÇ°±£»¤¼Ä´æÆ÷temp
-		if (tempRegNum != 0) {
-			fprintf(OCfile, "subi $sp, $sp, %d\n", 4 * tempRegNum);
-		}
-		for (int i = 0; i < tempRegNum; i++) {
-			fprintf(OCfile, "sw %s, %d($sp)\n", tempRegName[tempReg[i].id], 4 * i);
-		}
-		if (paraName != NULL) {
-			//Èç¹ûµ÷ÓÃÕßÊÇº¯ÊýÐèÒª±£´æ²ÎÊý¼Ä´æÆ÷ÒÔ¼°·µ»ØÎ»ÖÃ$ra
-			if (paraNum > 0 && paraNum < 3) {
-				fprintf(OCfile, "subi $sp, $sp, %d\n", 4 * paraNum);
-				for (int i = 0; i < callParaNum[callNum - 1]; i++) {
-					fprintf(OCfile, "sw %s, %d($sp)\n", paraRegName[i + 1], 4 * i);
-				}
-			}
-			else if (paraNum > 3) {
-				fprintf(OCfile, "subi $sp, $sp, %d\n", 4 * 3);
-				for (int i = 0; i < 3; i++) {
-					fprintf(OCfile, "sw %s, %d($sp)\n", paraRegName[i + 1], 4 * i);
-				}
-			}
-			fprintf(OCfile, "subi $sp, $sp, 4\n");
-			fprintf(OCfile, "sw $ra, ($sp)\n");
-		}
-		
-
-		//µ÷ÓÃÇ°±£´æÕ»¶¥$fp
-		fprintf(OCfile, "subi $sp, $sp, 4\n");
-		fprintf(OCfile, "sw $fp, ($sp)\n");
-		setPara();
+		clearGlobalReg();//Çå³ý²ÎÊýÉèÖÃ½×¶ÎÊ¹ÓÃµ½µÄÈ«¾Ö¼Ä´æÆ÷
 		fprintf(OCfile, "la $fp, -4($sp)\n");	//ÉèÖÃÐÂµÄÕ»Ö¡
 		fprintf(OCfile, "jal %s\n", ic.rd.name);
 		fprintf(OCfile, "la $sp, 4($fp)\n");	//»Ö¸´Õ»Ö¡
-		releasePara();
-		//»Ö¸´Õ»¶¥$fp
-		fprintf(OCfile, "lw $fp, ($sp)\n");
-		fprintf(OCfile, "addi $sp, $sp, 4\n");
-		if (paraName != NULL) {
-			//µ÷ÓÃ½áÊøºóÈç¹ûµ÷ÓÃÕßÊÇº¯Êý»Ö¸´·µ»ØÎ»ÖÃ$ra
-			fprintf(OCfile, "lw $ra, ($sp)\n");
-			fprintf(OCfile, "addi $sp, $sp, 4\n");
+		//ÊÍ·Å²ÎÊý
+		if (callParaNum[callNum - 1] > 3) 
+			fprintf(OCfile, "addi $sp, $sp, %d\n", 4 * (callParaNum[callNum - 1] - 3));
+		if (paraNum != 0 && callNum == 1) {
 			//»Ö¸´²ÎÊý¼Ä´æÆ÷
 			if (paraNum > 0 && paraNum < 3) {
-				for (int i = 0; i < callParaNum[callNum - 1]; i++) {
+				for (int i = 0; i < paraNum; i++) {
 					fprintf(OCfile, "lw %s, %d($sp)\n", paraRegName[i + 1], 4 * i);
+					paraReg[i + 1].dirty = 0;
 				}
 				fprintf(OCfile, "addi $sp, $sp, %d\n", 4 * paraNum);
 			}
-			else if (paraNum > 3) {
+			else if (paraNum >= 3) {
+				for (int i = 0; i < 3; i++) {
+					fprintf(OCfile, "lw %s, %d($sp)\n", paraRegName[i + 1], 4 * i);
+					paraReg[i + 1].dirty = 0;
+				}
+				fprintf(OCfile, "addi $sp, $sp, %d\n", 4 * 3);
+			}
+		}
+		else if (callNum > 1) {
+			if (callParaNum[callNum - 2] > 0 && callParaNum[callNum - 2] < 3) {
+				for (int i = 0; i < callParaNum[callNum - 2]; i++) {
+					fprintf(OCfile, "lw %s, %d($sp)\n", paraRegName[i + 1], 4 * i);
+				}
+				fprintf(OCfile, "addi $sp, $sp, %d\n", 4 * callParaNum[callNum - 2]);
+			}
+			else if (callParaNum[callNum - 2] >= 3) {
 				for (int i = 0; i < 3; i++) {
 					fprintf(OCfile, "lw %s, %d($sp)\n", paraRegName[i + 1], 4 * i);
 				}
 				fprintf(OCfile, "addi $sp, $sp, %d\n", 4 * 3);
 			}
 		}
+		//»Ö¸´Õ»¶¥$fp
+		fprintf(OCfile, "lw $fp, ($sp)\n");
+		fprintf(OCfile, "addi $sp, $sp, 4\n");
 		//»Ö¸´temp
-		for (int i = 0; i < tempRegNum; i++) {
-			fprintf(OCfile, "lw %s, %d($sp)\n", tempRegName[tempReg[i].id], 4 *i);
+		int tempNum = 0;
+		for (int i = 0; i < 10; i++) {
+			if (tempStack[callNum - 1][i] == 1) {
+				tempNum++;
+			}
 		}
-		if (tempRegNum != 0)
-			fprintf(OCfile, "addi $sp, $sp, %d\n", 4 * tempRegNum);
+		if (tempNum != 0) {
+			int count = 0;
+			for (int i = 0; i < 10; i++) {
+				if (tempStack[callNum - 1][i] == 1) {
+					fprintf(OCfile, "lw %s, %d($sp)\n", tempRegName[tempRegStack[callNum - 1][i].id], 4 * count++);
+					tempReg[i] = tempRegStack[callNum - 1][i];
+					tempRegNum = i+1;
+				}
+			}
+			fprintf(OCfile, "addi $sp, $sp, %d\n", 4 * tempNum);
+		}
 		//»Ö¸´solid
-		for (int i = 0; i < globalRegNum; i++) {
-			fprintf(OCfile, "lw %s, %d($sp)\n", globalRegName[globalReg[i].id], 4 * i);
+		int solidNum = 0;
+		for (int i = 0; i < 8; i++) {
+			if (solidStack[callNum - 1][i] == 1) {
+				solidNum++;
+			}
 		}
-		if (globalRegNum != 0)
-			fprintf(OCfile, "addi $sp, $sp, %d\n", 4 * globalRegNum);
+		if (solidNum != 0) {
+			int count = 0;
+			for (int i = 0; i < 8; i++) {
+				if (solidStack[callNum - 1][i] == 1) {
+					fprintf(OCfile, "lw %s, %d($sp)\n", globalRegName[solidRegStack[callNum - 1][i].id], 4 * count++);
+					globalReg[i] = solidRegStack[callNum - 1][i];
+					globalRegNum = i+1;
+				}
+			}
+			fprintf(OCfile, "addi $sp, $sp, %d\n", 4 * solidNum);
+		}
 		callParaNum[callNum - 1] = 0;
 		callNum--;
 		fprintf(OCfile, "move %s, $v0\n", tempRegName[setReg(ic.rs)]);
 	}
 	else if (ic.op == parameter) {
-		//½«²ÎÊý°´ÕÕ¹æÔò½øÐÐ±£´æ
-		addPara(ic.rd);
+		if (callParaNum[callNum - 1] < 3) {
+			if (ic.rd.category == con) {
+				fprintf(OCfile, "addi $a%d, $0, %d\n", callParaNum[callNum - 1] + 1, ic.rd.value);
+			}
+			else {
+				fprintf(OCfile, "move $a%d, %s\n", callParaNum[callNum - 1] + 1, searchParaOp(ic.rd));
+			}
+			paraReg[callParaNum[callNum - 1] + 1].dirty = 1;
+		}
+		else {
+			fprintf(OCfile, "subi $sp, $sp, %d\n", 4);
+			if (ic.rd.category == con) {
+				int temp = setReg();
+				fprintf(OCfile, "addi %s, $0, %d\n", tempRegName[temp], ic.rd.value);
+				fprintf(OCfile, "sw %s, ($sp)\n", tempRegName[temp]);
+				clearTempReg(temp);
+			}
+			else {
+				fprintf(OCfile, "sw %s, ($sp)\n", searchParaOp(ic.rd));	//¸øÃ¿¸ö²ÎÊý·ÖÅäËÄ¸ö×Ö½ÚµÄ¿Õ¼ä
+			}
+		}
+		callParaNum[callNum - 1]++;
+		clearTempReg();
 	}
 	else if (ic.op == alloc) {
-		int addr = ic.rd.value;
+		int addr = ic.rd.value - 4;
 		if (addr != 0) {
 			if (addr % 4 != 0) {
 				addr = addr - (4 + addr % 4);
@@ -1026,9 +1055,81 @@ void IC2OC(IC ic) {
 	}
 	else if (ic.op == OP::parabegin) {
 		callNum++;
+		for (int i = 0; i < 8; i++) {
+			solidStack[callNum - 1][i] = 0;
+		}
+		//µ÷ÓÃÇ°±£»¤¼Ä´æÆ÷solid
+		int solidNum = 0;
+		for (int i = 0; i < globalRegNum; i++) {
+			if (globalReg[i].valid == 1) {
+				solidNum++;
+			}
+		}
+		if (solidNum != 0) {
+			fprintf(OCfile, "subi $sp, $sp, %d\n", 4 * solidNum);
+			int count = 0;
+			for (int i = 0; i < globalRegNum; i++) {
+				if (globalReg[i].valid == 1) {
+					fprintf(OCfile, "sw %s, %d($sp)\n", globalRegName[globalReg[i].id], 4*count++);
+					solidStack[callNum-1][i] = 1;
+					solidRegStack[callNum - 1][i] = globalReg[i];
+				}
+			}
+		}
+		for (int i = 0; i < 10; i++) {
+			tempStack[callNum - 1][i] = 0;
+		}
+		//µ÷ÓÃÇ°±£»¤¼Ä´æÆ÷temp
+		int tempNum = 0;
+		for (int i = 0; i < tempRegNum; i++) {
+			if (tempReg[i].valid == 1) {
+				tempNum++;
+			}
+		}
+		if (tempNum != 0) {
+			fprintf(OCfile, "subi $sp, $sp, %d\n", 4 * tempNum);
+			int count = 0;
+			for (int i = 0; i < tempRegNum; i++) {
+				if (tempReg[i].valid == 1) {
+					fprintf(OCfile, "sw %s, %d($sp)\n", tempRegName[tempReg[i].id], 4*count++);
+					tempStack[callNum - 1][i] = 1;
+					tempRegStack[callNum - 1][i] = tempReg[i];
+				}
+			}
+		}
+		clearTempReg();
+		clearGlobalReg();//ÒÔÃâÖØ¸´±£»¤
+		//µ÷ÓÃÇ°±£´æÕ»¶¥$fp
+		fprintf(OCfile, "subi $sp, $sp, 4\n");
+		fprintf(OCfile, "sw $fp, ($sp)\n");
+		if (paraNum != 0 && callNum == 1) {
+			//Èç¹ûµ÷ÓÃÕßÊÇº¯ÊýÐèÒª±£´æ²ÎÊý¼Ä´æÆ÷
+			if (paraNum > 0 && paraNum < 3) {
+				fprintf(OCfile, "subi $sp, $sp, %d\n", 4 * paraNum);
+				for (int i = 0; i < paraNum; i++) {
+					fprintf(OCfile, "sw %s, %d($sp)\n", paraRegName[i + 1], 4 * i);
+				}
+			}
+			else if (paraNum >= 3) {
+				fprintf(OCfile, "subi $sp, $sp, %d\n", 4 * 3);
+				for (int i = 0; i < 3; i++) {
+					fprintf(OCfile, "sw %s, %d($sp)\n", paraRegName[i + 1], 4 * i);
+				}
+			}
+		}
+		else if(callNum > 1) {
+			if (callParaNum[callNum-2] > 0 && callParaNum[callNum - 2] < 3) {
+				fprintf(OCfile, "subi $sp, $sp, %d\n", 4 * callParaNum[callNum - 2]);
+				for (int i = 0; i < callParaNum[callNum - 2]; i++) {
+					fprintf(OCfile, "sw %s, %d($sp)\n", paraRegName[i + 1], 4 * i);
+				}
+			}
+			else if(callParaNum[callNum - 2] >= 3) {
+				fprintf(OCfile, "subi $sp, $sp, %d\n", 4 * 3);
+				for (int i = 0; i < 3; i++) {
+					fprintf(OCfile, "sw %s, %d($sp)\n", paraRegName[i + 1], 4 * i);
+				}
+			}
+		}
 	}
 }
-
-//»¹¿ÉÒÔ½øÐÐµÄÓÅ»¯£º
-//1. È«¾Ö¼Ä´æÆ÷µÄ·ÖÅä²ßÂÔ£¬Ê¹ÓÃvalid
-//2. ³Ë·¨³ý·¨¶ÔÌØÊâÖµ£¨±ÈÈç0¡¢1¡¢2µÄÃÝ´ÎµÈ£©

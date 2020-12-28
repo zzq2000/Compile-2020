@@ -1004,19 +1004,27 @@ void statement(gtNodePointer* gtNodepp) {
 			insert(*gtNodepp, gtNodepSon);
 		}
 		else if (symTable.symbol == LPARENT) {
+			int flag = 0;
 			for (int i = 0; i < functionNum; i++) {
 				if (strcmp(functions[i].name, symTableArray[0].value) == 0) {
 					if (functions[i].void_) {
 						gtNodePointer gtNodepSon = createTreeNode(VOIDFUNCTIONCALL);
 						voidfunctioncall(&gtNodepSon);
 						insert(*gtNodepp, gtNodepSon);
+						flag = 1;
 					}
 					else {
 						gtNodePointer gtNodepSon = createTreeNode(FUNCTIONCALL);
 						functioncallA(&gtNodepSon);
 						insert(*gtNodepp, gtNodepSon);
+						flag = 1;
 					}
 					break;
+				}
+			}
+			if (!flag) {
+				while (symTable.symbol != RPARENT) {
+					getNextSymTable();
 				}
 			}
 		}
@@ -1150,11 +1158,9 @@ void loopstatement(gtNodePointer* gtNodepp) {
 		insert(*gtNodepp, gtNodepSon);
 		getNextSymTable();
 		gtNodepSon = createTreeNode(CONDITION);
-		Operand con = conditionA(&gtNodepSon);
+		conditionA(&gtNodepSon, label1);
 		insert(*gtNodepp, gtNodepSon);
 		getNextSymTable();
-		//条件跳转至label1
-		ICBeq(con, *newOperand(0, Integer), label1);
 		if (symTable.symbol != RPARENT) {
 			errorPro(line, 'l');
 			err(line, symTable.value);
@@ -1217,9 +1223,8 @@ void loopstatement(gtNodePointer* gtNodepp) {
 		insert(*gtNodepp, gtNodepSon);
 		getNextSymTable();
 		gtNodepSon = createTreeNode(CONDITION);
-		Operand Con = conditionA(&gtNodepSon);
 		//条件跳转至label1
-		ICBeq(Con, *newOperand(0, Integer), label1);
+		conditionA(&gtNodepSon, label1);
 		insert(*gtNodepp, gtNodepSon);
 		getNextSymTable();
 		if (symTable.symbol != SEMICN) {
@@ -1332,9 +1337,8 @@ void conditionstatement(gtNodePointer* gtNodepp) {
 	gtNodepSon = createTreeNode(CONDITION);
 	//生成标号LABEL1
 	Operand label1 = *getLab();
-	Operand con = conditionA(&gtNodepSon);
 	//条件跳转至LABEL1
-	ICBeq(con, *newOperand(0, Integer), label1);
+	conditionA(&gtNodepSon, label1);
 	insert(*gtNodepp, gtNodepSon);
 	getNextSymTable();
 	if (symTable.symbol == RPARENT) {
@@ -1397,7 +1401,7 @@ void conditionstatement(gtNodePointer* gtNodepp) {
 //	}
 //}
 
-Operand conditionA(gtNodePointer* gtNodepp) {
+void conditionA(gtNodePointer* gtNodepp, Operand label) {
 	gtNodePointer gtNodepSon = createTreeNode(EXP);
 	Operand rs = expA(&gtNodepSon);
 	insert(*gtNodepp, gtNodepSon);
@@ -1420,26 +1424,24 @@ Operand conditionA(gtNodePointer* gtNodepp) {
 	if (getExpType(gtNodepSon) != Integer) {
 		errorPro(line, 'f');
 	}
-	Operand rd = *tempOperand();
 	if (sym == LSS) {
-		ICSlt(rd, rs, rt);
+		ICBge(rs, rt, label);
 	}
 	else if (sym == LEQ) {
-		ICSle(rd, rs, rt);
+		ICBgt(rs, rt, label);
 	}
 	else if (sym == GRE) {
-		ICSgt(rd, rs, rt);
+		ICBle(rs, rt, label);
 	}
 	else if (sym == GEQ) {
-		ICSge(rd, rs, rt);
+		ICBlt(rs, rt, label);
 	}
 	else if (sym == EQL) {
-		ICSeq(rd, rs, rt);
+		ICBne(rs, rt, label);
 	}
 	else if (sym == NEQ) {
-		ICSne(rd, rs, rt);
+		ICBeq(rs, rt, label);
 	}
-	return rd;
 }
 
 //void functioncall(gtNodePointer* gtNodepp) {
@@ -1950,6 +1952,7 @@ void return_(gtNodePointer* gtNodepp) {
 		if (returnType != Void) {
 			errorPro(line, 'h');
 		}
+		isReturned = 1;
 		ungetsym = 1;
 	}
 }

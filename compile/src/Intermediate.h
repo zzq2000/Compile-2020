@@ -13,12 +13,10 @@ typedef enum {
 	enter,
 	array_read,
 	array_write,
-	slt,
-	sle,
-	sgt,
-	sge,
-	sne,
-	seq,
+	bge,
+	bgt,
+	ble,
+	blt,
 	setlab,
 	beq,
 	bne,
@@ -77,12 +75,10 @@ void ICMove(Operand, Operand);
 void ICenter();
 void ICArrayRead(Operand, Operand, Operand);
 void ICArrayWrite(Operand, Operand, Operand);
-void ICSlt(Operand, Operand, Operand);
-void ICSle(Operand, Operand, Operand);
-void ICSgt(Operand, Operand, Operand);
-void ICSge(Operand, Operand, Operand);
-void ICSne(Operand, Operand, Operand);
-void ICSeq(Operand, Operand, Operand);
+void ICBge(Operand, Operand, Operand);
+void ICBgt(Operand, Operand, Operand);
+void ICBle(Operand, Operand, Operand);
+void ICBlt(Operand, Operand, Operand);
 void ICSetLab(Operand);
 void ICBeq(Operand, Operand, Operand);
 void ICBne(Operand, Operand, Operand);

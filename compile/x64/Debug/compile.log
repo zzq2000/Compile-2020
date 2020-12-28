@@ -1,5 +1,19 @@
-﻿src\Intermediate.cpp(326,17): warning : 'fopen' is deprecated: This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
-D:\Windows Kits\10\Include\10.0.18362.0\ucrt\stdio.h(207,20): message : 'fopen' has been explicitly marked deprecated here
+﻿src\parser.cpp(790,3): warning : 'strcpy' is deprecated: This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
+D:\Windows Kits\10\Include\10.0.18362.0\ucrt\string.h(133,1): message : 'strcpy' has been explicitly marked deprecated here
+D:\Windows Kits\10\Include\10.0.18362.0\ucrt\corecrt.h(748,5): message : expanded from macro '__DEFINE_CPP_OVERLOAD_STANDARD_FUNC_0_1'
+D:\Windows Kits\10\Include\10.0.18362.0\ucrt\corecrt.h(1831,17): message : expanded from macro '__DEFINE_CPP_OVERLOAD_STANDARD_FUNC_0_1_EX'
+D:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vcruntime.h(255,55): message : expanded from macro '_CRT_INSECURE_DEPRECATE'
+D:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vcruntime.h(245,47): message : expanded from macro '_CRT_DEPRECATE_TEXT'
+src\parser.cpp(806,3): warning : 'strcpy' is deprecated: This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
+D:\Windows Kits\10\Include\10.0.18362.0\ucrt\string.h(133,1): message : 'strcpy' has been explicitly marked deprecated here
+D:\Windows Kits\10\Include\10.0.18362.0\ucrt\corecrt.h(748,5): message : expanded from macro '__DEFINE_CPP_OVERLOAD_STANDARD_FUNC_0_1'
+D:\Windows Kits\10\Include\10.0.18362.0\ucrt\corecrt.h(1831,17): message : expanded from macro '__DEFINE_CPP_OVERLOAD_STANDARD_FUNC_0_1_EX'
+D:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vcruntime.h(255,55): message : expanded from macro '_CRT_INSECURE_DEPRECATE'
+D:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vcruntime.h(245,47): message : expanded from macro '_CRT_DEPRECATE_TEXT'
+src\parser.cpp(867,2): warning : 'strcpy' is deprecated: This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
+D:\Windows Kits\10\Include\10.0.18362.0\ucrt\string.h(133,1): message : 'strcpy' has been explicitly marked deprecated here
+D:\Windows Kits\10\Include\10.0.18362.0\ucrt\corecrt.h(748,5): message : expanded from macro '__DEFINE_CPP_OVERLOAD_STANDARD_FUNC_0_1'
+D:\Windows Kits\10\Include\10.0.18362.0\ucrt\corecrt.h(1831,17): message : expanded from macro '__DEFINE_CPP_OVERLOAD_STANDARD_FUNC_0_1_EX'
 D:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vcruntime.h(255,55): message : expanded from macro '_CRT_INSECURE_DEPRECATE'
 D:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vcruntime.h(245,47): message : expanded from macro '_CRT_DEPRECATE_TEXT'
   compile.vcxproj -> D:\compile\compile-2020\compile\x64\Debug\compile.exe

@@ -14,7 +14,7 @@ ICFUNC funclists[256];
 int funcnum = 0;
 IC* lists = IClists;
 char ICName[][15] = {"add", "sub", "mult", "divi", "read", "print", "move", "enter", "array_read", "array_write",
-	"slt", "sle", "sgt", "sge", "sne", "seq", "setlab", "beq", "bne", "j", "ret", "retv", "call", "callv", "parameter", "alloc"};
+	"bge", "bgt", "ble", "blt", "setlab", "beq", "bne", "j", "ret", "retv", "call", "callv", "parameter", "alloc"};
 
 Operand* newOperand(IdTable idtable) {
 	Operand* Tp = (Operand*)malloc(sizeof(Operand));
@@ -187,8 +187,8 @@ void ICArrayWrite(Operand rd, Operand rs, Operand rt) {
 	ICnum++;
 }
 
-void ICSlt(Operand rd, Operand rs, Operand rt) {
-	lists[ICnum].op = OP::slt;
+void ICBge(Operand rd, Operand rs, Operand rt) {
+	lists[ICnum].op = OP::bge;
 	lists[ICnum].rd = rd;
 	lists[ICnum].rs = rs;
 	lists[ICnum].rt = rt;
@@ -196,8 +196,8 @@ void ICSlt(Operand rd, Operand rs, Operand rt) {
 	ICnum++;
 }
 
-void ICSle(Operand rd, Operand rs, Operand rt) {
-	lists[ICnum].op = OP::sle;
+void ICBgt(Operand rd, Operand rs, Operand rt) {
+	lists[ICnum].op = OP::bgt;
 	lists[ICnum].rd = rd;
 	lists[ICnum].rs = rs;
 	lists[ICnum].rt = rt;
@@ -205,8 +205,8 @@ void ICSle(Operand rd, Operand rs, Operand rt) {
 	ICnum++;
 }
 
-void ICSgt(Operand rd, Operand rs, Operand rt) {
-	lists[ICnum].op = OP::sgt;
+void ICBle(Operand rd, Operand rs, Operand rt) {
+	lists[ICnum].op = OP::ble;
 	lists[ICnum].rd = rd;
 	lists[ICnum].rs = rs;
 	lists[ICnum].rt = rt;
@@ -214,26 +214,8 @@ void ICSgt(Operand rd, Operand rs, Operand rt) {
 	ICnum++;
 }
 
-void ICSge(Operand rd, Operand rs, Operand rt) {
-	lists[ICnum].op = OP::sge;
-	lists[ICnum].rd = rd;
-	lists[ICnum].rs = rs;
-	lists[ICnum].rt = rt;
-	lists[ICnum].opNum = 3;
-	ICnum++;
-}
-
-void ICSne(Operand rd, Operand rs, Operand rt) {
-	lists[ICnum].op = OP::sne;
-	lists[ICnum].rd = rd;
-	lists[ICnum].rs = rs;
-	lists[ICnum].rt = rt;
-	lists[ICnum].opNum = 3;
-	ICnum++;
-}
-
-void ICSeq(Operand rd, Operand rs, Operand rt) {
-	lists[ICnum].op = OP::seq;
+void ICBlt(Operand rd, Operand rs, Operand rt) {
+	lists[ICnum].op = OP::blt;
 	lists[ICnum].rd = rd;
 	lists[ICnum].rs = rs;
 	lists[ICnum].rt = rt;

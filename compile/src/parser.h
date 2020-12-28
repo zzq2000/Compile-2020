@@ -104,7 +104,7 @@ Operand factorA(gtNodePointer*);
 Operand integerA(gtNodePointer* gtNodepp);
 Operand constA(gtNodePointer* gtNodepp);
 Operand arrayValueAtA(gtNodePointer*);
-Operand conditionA(gtNodePointer*);
+void conditionA(gtNodePointer*, Operand);
 Operand unsignedintegerA(gtNodePointer*);
 Operand stepsizeA(gtNodePointer*);
 Operand functioncallA(gtNodePointer*);

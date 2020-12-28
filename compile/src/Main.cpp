@@ -15,8 +15,10 @@ int main() {
 	//analysis(inFile);
 	//print2file(outFile);
 	parsering(inFile);
-	outputOC();
-	printIC();
+	if (Errors == 0) {
+		outputOC();
+		printIC();
+	}
 	//gt2file(outFile, grammerTree);
 	fclose(inFile);
 	fclose(outFile);

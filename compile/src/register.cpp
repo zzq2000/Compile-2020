@@ -22,7 +22,7 @@
 	 }
 	 else if (op.category == var){
 		 for (int i = 0; i < globalRegNum; i++) {
-			 if (strcmp(globalReg[i].name, op.name) == 0) {
+			 if (globalReg[i].name != NULL && strcmp(globalReg[i].name, op.name) == 0) {
 				 globalReg[i].count++;
 				 return globalReg[i].id;
 			 }
@@ -71,12 +71,19 @@
 			 return globalRegNum-1;
 		 }
 		 else {
-			 int id= 0;
-			 int mincount = globalReg[0].count;
+			 int id= -1;
+			 int mincount = 1024;
 			 for (int i = 1; i < globalRegNum; i++) {
-				 if (globalReg[i].count < mincount) {
+				 if (globalReg[i].count < mincount && globalReg[i].valid == 0) {
 					 id = i;
 					 mincount = globalReg[i].count;
+				 }
+			 }
+			 if (id == -1) {
+				 for (int i = 1; i < globalRegNum; i++) {
+					 if (globalReg[i].valid == 0) {
+						 id = i;
+					 }
 				 }
 			 }
 			 globalReg[id].id = id;
@@ -123,6 +130,7 @@
 		 paraReg[paraRegNum].name = op.name;
 		 paraReg[paraRegNum].count = 0;
 		 paraReg[paraRegNum].valid = 1;
+		 paraReg[paraRegNum].dirty = 0;
 		 paraRegNum++;
 		 return paraRegNum - 1;
 	 }
@@ -168,14 +176,19 @@
 	 paraRegNum = 0;
  }
 
- void setNotValid(int id) {
-	 tempReg[id].valid = 0;
+ void setNotValid(Category catogry, int id) {
+	 if (catogry == temp) 
+		tempReg[id].valid = 0;
+	 else
+	 {
+		 globalReg[id].valid = 0;
+	 }
  }
 
  void changed(Operand op) {
 	 if (op.category == var) {
 		 for (int i = 0; i < globalRegNum; i++) {
-			 if (strcmp(globalReg[i].name, op.name) == 0) {
+			 if (globalReg[i].name != NULL && strcmp(globalReg[i].name, op.name) == 0) {
 				 globalReg[i].dirty = 1;
 			 }
 		 }

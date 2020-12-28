@@ -1,0 +1,324 @@
+move i 0 
+alloc 
+ 
+callv myscanf TEMP_74 
+move c TEMP_74 
+ 
+callv myscanf TEMP_75 
+move n TEMP_75 
+ 
+callv myscanf TEMP_76 
+move m TEMP_76 
+ 
+callv myscanf TEMP_77 
+move arrlen TEMP_77 
+setlab LABEL44 
+bge i arrlen LABEL45 
+mult TEMP_78 i 4 
+divi TEMP_80 i 10 
+mult TEMP_81 TEMP_80 10 
+sub TEMP_79 i TEMP_81 
+array_write a TEMP_78 TEMP_79 
+add TEMP_82 i 1 
+move i TEMP_82 
+j LABEL44 
+setlab LABEL45 
+ 
+callv myscanf TEMP_83 
+move task TEMP_83 
+move i 0 
+setlab LABEL46 
+bge i task LABEL47 
+mult TEMP_84 i 4 
+ 
+callv myscanf TEMP_85 
+array_write kernelid TEMP_84 TEMP_85 
+add TEMP_86 i 1 
+move i TEMP_86 
+j LABEL46 
+setlab LABEL47 
+move i 0 
+setlab LABEL48 
+bge i task LABEL49 
+ 
+mult TEMP_88 i 4 
+array_read TEMP_87 kernelid TEMP_88 
+parameter TEMP_87 
+parameter n 
+parameter m 
+parameter c 
+callv convn TEMP_89 
+ 
+mult TEMP_90 n m 
+parameter TEMP_90 
+call 
+add TEMP_91 i 1 
+move i TEMP_91 
+j LABEL48 
+setlab LABEL49 
+move i 0 
+setlab LABEL50 
+mult TEMP_92 n m 
+bge i TEMP_92 LABEL51 
+ 
+mult TEMP_94 i 4 
+array_read TEMP_93 a TEMP_94 
+parameter TEMP_93 
+call 
+add TEMP_95 i 1 
+move i TEMP_95 
+j LABEL50 
+setlab LABEL51 
+ 
+myscanf:
+alloc 
+read n 
+retv n 
+myprintf:
+alloc 
+print n 
+enter 
+ret 
+checkrange:
+alloc 
+setlab LABEL0 
+ble num max LABEL1 
+sub TEMP_0 num max 
+move num TEMP_0 
+j LABEL0 
+setlab LABEL1 
+setlab LABEL2 
+bge num 0 LABEL3 
+add TEMP_1 num max 
+move num TEMP_1 
+j LABEL2 
+setlab LABEL3 
+retv num 
+reduce:
+alloc 
+bne kernelid 0 LABEL4 
+ 
+add TEMP_2 x y 
+parameter TEMP_2 
+callv checkrange TEMP_3 
+retv TEMP_3 
+setlab LABEL4 
+bne kernelid 1 LABEL5 
+move ret 0 
+move i 1 
+setlab LABEL6 
+bge i max LABEL7 
+divi TEMP_4 x i 
+divi TEMP_6 x i 
+divi TEMP_7 TEMP_6 2 
+mult TEMP_8 TEMP_7 2 
+sub TEMP_5 TEMP_4 TEMP_8 
+divi TEMP_9 y i 
+divi TEMP_11 y i 
+divi TEMP_12 TEMP_11 2 
+mult TEMP_13 TEMP_12 2 
+sub TEMP_10 TEMP_9 TEMP_13 
+bne TEMP_5 TEMP_10 LABEL8 
+mult TEMP_14 ret 2 
+move ret TEMP_14 
+j LABEL9 
+setlab LABEL8 
+mult TEMP_15 ret 2 
+add TEMP_16 TEMP_15 1 
+move ret TEMP_16 
+setlab LABEL9 
+mult TEMP_17 i 2 
+move i TEMP_17 
+j LABEL6 
+setlab LABEL7 
+retv ret 
+setlab LABEL5 
+bne kernelid 2 LABEL10 
+ble x y LABEL11 
+retv x 
+j LABEL12 
+setlab LABEL11 
+retv y 
+setlab LABEL12 
+setlab LABEL10 
+bne kernelid 3 LABEL13 
+move ret 0 
+move i 1 
+setlab LABEL14 
+bge i max LABEL15 
+divi TEMP_18 x i 
+divi TEMP_20 x i 
+divi TEMP_21 TEMP_20 2 
+mult TEMP_22 TEMP_21 2 
+sub TEMP_19 TEMP_18 TEMP_22 
+bne TEMP_19 1 LABEL16 
+mult TEMP_23 ret 2 
+add TEMP_24 TEMP_23 1 
+move ret TEMP_24 
+j LABEL17 
+setlab LABEL16 
+divi TEMP_25 y i 
+divi TEMP_27 y i 
+divi TEMP_28 TEMP_27 2 
+mult TEMP_29 TEMP_28 2 
+sub TEMP_26 TEMP_25 TEMP_29 
+bne TEMP_26 1 LABEL18 
+mult TEMP_30 ret 2 
+add TEMP_31 TEMP_30 1 
+move ret TEMP_31 
+setlab LABEL18 
+mult TEMP_32 ret 2 
+move ret TEMP_32 
+setlab LABEL17 
+mult TEMP_33 i 2 
+move i TEMP_33 
+j LABEL14 
+setlab LABEL15 
+retv ret 
+setlab LABEL13 
+bne kernelid 4 LABEL19 
+move ret 0 
+move i 1 
+setlab LABEL20 
+bge i max LABEL21 
+divi TEMP_34 x i 
+divi TEMP_36 x i 
+divi TEMP_37 TEMP_36 2 
+mult TEMP_38 TEMP_37 2 
+sub TEMP_35 TEMP_34 TEMP_38 
+bne TEMP_35 1 LABEL22 
+divi TEMP_39 y i 
+divi TEMP_41 y i 
+divi TEMP_42 TEMP_41 2 
+mult TEMP_43 TEMP_42 2 
+sub TEMP_40 TEMP_39 TEMP_43 
+bne TEMP_40 1 LABEL23 
+mult TEMP_44 ret 2 
+add TEMP_45 TEMP_44 1 
+move ret TEMP_45 
+j LABEL24 
+setlab LABEL23 
+mult TEMP_46 ret 2 
+move ret TEMP_46 
+setlab LABEL24 
+j LABEL25 
+setlab LABEL22 
+mult TEMP_47 ret 2 
+move ret TEMP_47 
+setlab LABEL25 
+mult TEMP_48 i 2 
+move i TEMP_48 
+j LABEL20 
+setlab LABEL21 
+retv ret 
+setlab LABEL19 
+retv 0 
+getvalue:
+alloc 
+bge x 0 LABEL26 
+retv 0 
+setlab LABEL26 
+bge y 0 LABEL27 
+retv 0 
+setlab LABEL27 
+blt x n LABEL28 
+retv 0 
+setlab LABEL28 
+blt y m LABEL29 
+retv 0 
+setlab LABEL29 
+mult TEMP_50 x m 
+add TEMP_51 TEMP_50 y 
+mult TEMP_52 TEMP_51 4 
+array_read TEMP_49 a TEMP_52 
+retv TEMP_49 
+convn:
+move i 0 
+move j 0 
+move flag1 1 
+move flag2 1 
+move flag3 1 
+move flag4 1 
+alloc 
+setlab LABEL30 
+bne flag1 1 LABEL31 
+move j 0 
+setlab LABEL32 
+bne flag2 1 LABEL33 
+move curr 0 
+divi TEMP_54 c 2 
+sub TEMP_53 i TEMP_54 
+move x TEMP_53 
+setlab LABEL34 
+bne flag3 1 LABEL35 
+divi TEMP_56 c 2 
+sub TEMP_55 j TEMP_56 
+move y TEMP_55 
+setlab LABEL36 
+bne flag4 1 LABEL37 
+ 
+parameter kernelid 
+parameter curr 
+ 
+parameter n 
+parameter m 
+parameter x 
+parameter y 
+callv getvalue TEMP_57 
+parameter TEMP_57 
+callv reduce TEMP_58 
+move curr TEMP_58 
+add TEMP_59 y 1 
+move y TEMP_59 
+divi TEMP_61 c 2 
+add TEMP_60 j TEMP_61 
+blt y TEMP_60 LABEL38 
+move flag4 0 
+setlab LABEL38 
+j LABEL36 
+setlab LABEL37 
+move flag4 1 
+add TEMP_62 x 1 
+move x TEMP_62 
+divi TEMP_64 c 2 
+add TEMP_63 i TEMP_64 
+blt x TEMP_63 LABEL39 
+move flag3 0 
+setlab LABEL39 
+j LABEL34 
+setlab LABEL35 
+move flag3 1 
+mult TEMP_65 i m 
+add TEMP_66 TEMP_65 j 
+mult TEMP_67 TEMP_66 4 
+array_write b TEMP_67 curr 
+add TEMP_68 j 1 
+move j TEMP_68 
+blt j m LABEL40 
+move flag2 0 
+setlab LABEL40 
+j LABEL32 
+setlab LABEL33 
+move flag2 1 
+add TEMP_69 i 1 
+move i TEMP_69 
+blt i n LABEL41 
+move flag1 0 
+setlab LABEL41 
+j LABEL30 
+setlab LABEL31 
+retv 0 
+mymemmove:
+move i 0 
+alloc 
+setlab LABEL42 
+bge i n LABEL43 
+mult TEMP_70 i 4 
+mult TEMP_72 i 4 
+array_read TEMP_71 b TEMP_72 
+array_write a TEMP_70 TEMP_71 
+add TEMP_73 i 1 
+move i TEMP_73 
+j LABEL42 
+setlab LABEL43 
+ret 
